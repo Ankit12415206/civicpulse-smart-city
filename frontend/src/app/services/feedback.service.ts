@@ -1,0 +1,18 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Injectable({ providedIn: 'root' })
+export class FeedbackService {
+  private API = 'http://localhost:8080/api/citizen/feedback';
+
+  constructor(private http: HttpClient) {}
+
+  submitFeedback(grievanceId: number, rating: number, comment: string) {
+    return this.http.post(`${this.API}/submit`,
+      { grievanceId, rating, comment });
+  }
+
+  reopen(grievanceId: number) {
+    return this.http.put(`${this.API}/reopen/${grievanceId}`, {});
+  }
+}
