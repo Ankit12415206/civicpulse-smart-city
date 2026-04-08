@@ -1,196 +1,182 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule, RouterLink],
   template: `
-    <div class="login-wrapper">
-      <!-- LEFT PANEL -->
+    <div class="login-root">
+      <!-- Left panel -->
       <div class="left-panel">
-        <div class="brand">
-          <div class="brand-icon">🏙️</div>
-          <span class="brand-name">Civic Smart City</span>
+        <div class="brand-block">
+          <div class="logo-ring">
+            <span class="logo-icon">🏛️</span>
+          </div>
+          <h1 class="brand">Civic<span class="accent">Pulse</span></h1>
+          <p class="tagline">Smart City Grievance Portal</p>
         </div>
-        <div class="badge-pill">POWERED BY INTELLIGENCE</div>
-        <h1 class="hero-text">
-          Building <span class="accent">Smarter</span><br/>Cities Together
-        </h1>
-        <p class="hero-sub">
-          A unified platform for citizens, officers, and administrators
-          to collaborate, report issues, and drive real civic change.
-        </p>
-        <div class="stats-row">
-          <div class="stat">
-            <div class="stat-num">12K+</div>
-            <div class="stat-label">Active Citizens</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num">340+</div>
-            <div class="stat-label">Issues Resolved</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num">98%</div>
-            <div class="stat-label">Satisfaction</div>
-          </div>
+        <div class="features">
+          <div class="feat"><span class="feat-icon">✅</span><span>Submit complaints easily</span></div>
+          <div class="feat"><span class="feat-icon">📊</span><span>Track real-time status</span></div>
+          <div class="feat"><span class="feat-icon">🔔</span><span>Get resolution updates</span></div>
+          <div class="feat"><span class="feat-icon">⭐</span><span>Rate the service</span></div>
+        </div>
+        <div class="theme-row">
+          <button class="theme-toggle-btn" (click)="theme.toggle()"
+            [title]="theme.isDark() ? 'Switch to Light' : 'Switch to Dark'">
+            {{ theme.isDark() ? '☀️' : '🌙' }}
+          </button>
         </div>
       </div>
 
-      <!-- RIGHT PANEL -->
+      <!-- Right panel -->
       <div class="right-panel">
         <div class="form-card">
-          <h2>Welcome back</h2>
-          <p class="form-sub">
-            New to the platform?
-            <a routerLink="/register">Create an account</a>
-          </p>
-
+          <h2>Welcome Back</h2>
+          <p class="sub">Sign in to your account</p>
           <form [formGroup]="form" (ngSubmit)="onLogin()">
             <div class="field">
-              <label>Username</label>
-              <div class="input-wrap">
-                <span class="input-icon">👤</span>
-                <input formControlName="email" type="email"
-                  placeholder="your@email.com"/>
-              </div>
+              <label>Email Address</label>
+              <input formControlName="email" type="email" placeholder="you@example.com"/>
             </div>
             <div class="field">
               <label>Password</label>
-              <div class="input-wrap">
-                <span class="input-icon">🔒</span>
-                <input formControlName="password"
-                  [type]="showPwd ? 'text' : 'password'"
-                  placeholder="••••••••••••"/>
-                <span class="toggle-pwd" (click)="showPwd = !showPwd">
-                  {{ showPwd ? '🙈' : '👁️' }}
-                </span>
-              </div>
-            </div>
-            <div class="forgot-row">
-              <a href="#">Forgot password?</a>
+              <input formControlName="password" type="password" placeholder="••••••••"/>
             </div>
             <p class="err" *ngIf="error">{{ error }}</p>
-            <button type="submit" [disabled]="form.invalid || loading" class="btn-signin">
+            <button type="submit" class="submit-btn" [disabled]="form.invalid || loading">
               {{ loading ? 'Signing in...' : 'Sign In' }}
             </button>
           </form>
-
-          <p class="register-link">
-            Don't have an account?
-            <a routerLink="/register">Register now →</a>
-          </p>
+          <p class="switch-link">New to CivicPulse? <a routerLink="/register">Create account</a></p>
         </div>
       </div>
     </div>
   `,
   styles: [`
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    .login-wrapper { display: flex; min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+    .login-root { display:flex; min-height:100vh; }
 
-    /* LEFT */
     .left-panel {
-      flex: 0 0 55%;
-      background: linear-gradient(135deg, #0a0f2e 0%, #0d1b4b 50%, #091533 100%);
-      padding: 48px 56px;
-      display: flex; flex-direction: column; justify-content: center; gap: 24px;
-      position: relative; overflow: hidden;
+      width:380px; min-height:100vh;
+      background: linear-gradient(160deg, #0d2137 0%, #0a3d3a 60%, #0f2a1f 100%);
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; padding:40px; gap:32px;
     }
-    .left-panel::before {
-      content: '';
-      position: absolute; top: -100px; right: -100px;
-      width: 400px; height: 400px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,150,200,0.15) 0%, transparent 70%);
+    .brand-block { text-align:center; }
+    .logo-ring {
+      width:72px; height:72px; border-radius:50%;
+      background:rgba(14,165,160,0.2); border:2px solid var(--teal,#0EA5A0);
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 16px; font-size:28px;
     }
-    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-    .brand-icon {
-      width: 44px; height: 44px; background: #1a3a6b; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center; font-size: 22px;
-    }
-    .brand-name { color: #fff; font-size: 18px; font-weight: 600; }
-    .badge-pill {
-      display: inline-block; padding: 5px 14px;
-      border: 1px solid rgba(0,150,220,0.5);
-      border-radius: 20px; color: #60a5fa; font-size: 11px;
-      letter-spacing: 1.5px; font-weight: 600; width: fit-content;
-    }
-    .hero-text {
-      font-size: 52px; font-weight: 900; color: #fff; line-height: 1.15;
-    }
-    .accent { color: #22d3ee; }
-    .hero-sub { color: #94a3b8; font-size: 15px; line-height: 1.7; max-width: 420px; }
-    .stats-row { display: flex; gap: 40px; margin-top: 12px; }
-    .stat-num { font-size: 28px; font-weight: 800; color: #fff; }
-    .stat-label { font-size: 12px; color: #64748b; margin-top: 2px; }
+    .brand { font-size:32px; font-weight:800; color:#e2e8f0; }
+    .accent { color:#0EA5A0; }
+    .tagline { color:rgba(255,255,255,0.5); font-size:13px; margin-top:6px; }
 
-    /* RIGHT */
+    .features { width:100%; display:flex; flex-direction:column; gap:12px; }
+    .feat { display:flex; align-items:center; gap:12px;
+      padding:12px 16px; background:rgba(255,255,255,0.05);
+      border-radius:10px; color:rgba(255,255,255,0.7); font-size:13px; }
+    .feat-icon { font-size:16px; }
+
+    .theme-row { width:100%; }
+    .theme-toggle-btn {
+      width:100%; padding:10px; background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.15); border-radius:10px;
+      color:rgba(255,255,255,0.7); cursor:pointer; font-size:13px;
+      transition:all 0.2s;
+    }
+    .theme-toggle-btn:hover { background:rgba(255,255,255,0.14); color:#fff; }
+
     .right-panel {
-      flex: 1; background: #fff;
-      display: flex; align-items: center; justify-content: center;
-      padding: 48px 40px;
+      flex:1; display:flex; align-items:center; justify-content:center;
+      background:var(--bg-main,#0f1923); padding:40px;
     }
-    .form-card { width: 100%; max-width: 400px; }
-    h2 { font-size: 32px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
-    .form-sub { font-size: 14px; color: #64748b; margin-bottom: 32px; }
-    .form-sub a { color: #2563eb; text-decoration: none; font-weight: 500; }
-    .field { margin-bottom: 20px; }
-    label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px; }
-    .input-wrap {
-      display: flex; align-items: center;
-      border: 2px solid #e5e7eb; border-radius: 10px;
-      padding: 0 14px; gap: 10px; transition: border-color 0.2s;
+    .form-card {
+      width:100%; max-width:420px;
+      background:var(--bg-card,#162032);
+      border:1px solid var(--border,rgba(255,255,255,0.08));
+      border-radius:20px; padding:40px;
+      box-shadow:0 8px 40px rgba(0,0,0,0.3);
     }
-    .input-wrap:focus-within { border-color: #2563eb; }
-    .input-icon { font-size: 16px; flex-shrink: 0; }
-    .input-wrap input {
-      flex: 1; border: none; outline: none; padding: 13px 0;
-      font-size: 15px; color: #111; background: transparent;
+    h2 { color:var(--text,#e2e8f0); font-size:24px; font-weight:700; margin-bottom:6px; }
+    .sub { color:var(--text3,#64748b); font-size:13px; margin-bottom:28px; }
+
+    .field { margin-bottom:18px; }
+    label { display:block; font-size:12px; color:var(--text2,#94a3b8);
+      margin-bottom:6px; font-weight:500; }
+    input {
+      width:100%; padding:12px 16px;
+      background:var(--bg-card2,#1a2840);
+      border:1px solid var(--border,rgba(255,255,255,0.08));
+      border-radius:10px; font-size:14px; color:var(--text,#e2e8f0); outline:none;
     }
-    .toggle-pwd { cursor: pointer; font-size: 16px; }
-    .forgot-row { text-align: right; margin-top: -10px; margin-bottom: 20px; }
-    .forgot-row a { font-size: 13px; color: #2563eb; text-decoration: none; }
-    .btn-signin {
-      width: 100%; padding: 14px; background: #2563eb; color: #fff;
-      border: none; border-radius: 10px; font-size: 16px; font-weight: 700;
-      cursor: pointer; transition: background 0.2s;
+    input::placeholder { color:var(--text3,#64748b); }
+    input:focus { border-color:var(--teal,#0EA5A0); }
+
+    .err { color:#fca5a5; font-size:12px; margin-bottom:12px; }
+    .submit-btn {
+      width:100%; padding:13px;
+      background:linear-gradient(135deg,#0EA5A0,#0f7a76);
+      color:#fff; border:none; border-radius:10px;
+      font-size:15px; font-weight:700; cursor:pointer;
+      transition:opacity 0.2s; margin-top:4px;
     }
-    .btn-signin:hover:not(:disabled) { background: #1d4ed8; }
-    .btn-signin:disabled { background: #93c5fd; cursor: not-allowed; }
-    .err { color: #ef4444; font-size: 13px; margin-bottom: 10px; }
-    .register-link { text-align: center; font-size: 14px; color: #64748b; margin-top: 20px; }
-    .register-link a { color: #2563eb; text-decoration: none; font-weight: 600; }
+    .submit-btn:disabled { opacity:0.5; cursor:not-allowed; }
+    .submit-btn:hover:not(:disabled) { opacity:0.9; }
+
+    .switch-link { text-align:center; margin-top:20px;
+      color:var(--text3,#64748b); font-size:13px; }
+    a { color:var(--teal,#0EA5A0); text-decoration:none; font-weight:500; }
+    a:hover { text-decoration:underline; }
+
+    @media(max-width:768px) {
+      .login-root { flex-direction:column; }
+      .left-panel { width:100%; min-height:auto; padding:32px; }
+    }
   `]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   form: FormGroup;
   error = '';
   loading = false;
-  showPwd = false;
 
-  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    private auth: AuthService,
+    private router: Router,
+    public theme: ThemeService,
+    @Inject(PLATFORM_ID) private pid: Object
+  ) {
     this.form = this.fb.group({
-      email:    ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
     });
+  }
+
+  ngOnInit() {
+    if (isPlatformBrowser(this.pid)) {
+      document.body.setAttribute('data-theme', this.theme.isDark() ? 'dark' : 'light');
+    }
   }
 
   onLogin() {
     this.error = '';
     this.loading = true;
     this.auth.login(this.form.value).subscribe({
-      next: (res) => {
+      next: res => {
         this.loading = false;
-        if (res.role === 'ADMIN')        this.router.navigate(['/admin/dashboard']);
+        if (res.role === 'ADMIN') this.router.navigate(['/admin/dashboard']);
         else if (res.role === 'OFFICER') this.router.navigate(['/officer/dashboard']);
-        else                             this.router.navigate(['/citizen/dashboard']);
+        else this.router.navigate(['/citizen/dashboard']);
       },
-      error: () => {
-        this.loading = false;
-        this.error = 'Invalid email or password';
-      }
+      error: () => { this.loading = false; this.error = 'Invalid email or password.'; }
     });
   }
 }

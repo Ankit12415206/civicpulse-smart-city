@@ -1,26 +1,199 @@
-/* Global styles for CivicPulse dark theme */
+:root,
+:root[data-theme="dark"],
+html[data-theme="dark"] {
+  --bg-main: #0f1923;
+  --bg-sidebar: #111c2a;
+  --bg-card: #162032;
+  --bg-card2: #1a2840;
+  --bg-hover: rgba(14, 165, 160, 0.08);
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --teal: #0EA5A0;
+  --gold: #F0A500;
+  --green: #10b981;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --border: rgba(255, 255, 255, 0.08);
+  --border2: rgba(255, 255, 255, 0.04);
+  background: #0f1923;
+}
+
+:root[data-theme="light"],
+html[data-theme="light"] {
+  --bg-main: #f0f4f8;
+  --bg-sidebar: #162032;
+  --bg-card: #ffffff;
+  --bg-card2: #f8fafc;
+  --bg-hover: rgba(14, 165, 160, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --teal: #0d9488;
+  --gold: #d97706;
+  --green: #059669;
+  --red: #dc2626;
+  --blue: #2563eb;
+  --border: rgba(0, 0, 0, 0.1);
+  --border2: rgba(0, 0, 0, 0.05);
+  background: #f0f4f8;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body {
-  height: 100%;
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #0d1117;
+body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  min-height: 100vh;
+  /* Dark theme defaults — applied immediately before JS loads */
+  --bg-main: #0f1923;
+  --bg-sidebar: #111c2a;
+  --bg-card: #162032;
+  --bg-card2: #1a2840;
+  --bg-hover: rgba(14, 165, 160, 0.08);
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --teal: #0EA5A0;
+  --gold: #F0A500;
+  --green: #10b981;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --border: rgba(255, 255, 255, 0.08);
+  --border2: rgba(255, 255, 255, 0.04);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  background: #0f1923;
   color: #e2e8f0;
-  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0d1117; }
-::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #334155; }
+body[data-theme="light"] {
+  --bg-main: #f0f4f8;
+  --bg-sidebar: #162032;
+  --bg-card: #ffffff;
+  --bg-card2: #f8fafc;
+  --bg-hover: rgba(14, 165, 160, 0.08);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --teal: #0d9488;
+  --gold: #d97706;
+  --green: #059669;
+  --red: #dc2626;
+  --blue: #2563eb;
+  --border: rgba(0, 0, 0, 0.1);
+  --border2: rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  background: #f0f4f8;
+  color: #1e293b;
+}
 
-a { text-decoration: none; color: inherit; }
+/* Badge styles */
+.badge-pending {
+  background: rgba(240, 165, 0, 0.15);
+  color: #F0A500;
+  border: 1px solid rgba(240, 165, 0, 0.3);
+}
 
-input, select, textarea, button {
-  font-family: inherit;
+.badge-in_progress {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-resolved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-closed {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.badge-reopened {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-low {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.badge-medium {
+  background: rgba(240, 165, 0, 0.15);
+  color: #F0A500;
+}
+
+.badge-high {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.badge-critical {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  font-weight: 700;
+}
+
+.badge-pill {
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+}
+
+/* Layout */
+.page-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 50;
+}
+
+.main-content {
+  margin-left: 240px;
+  flex: 1;
+  background: var(--bg-main);
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+app-root {
+  display: block;
+  min-height: 100vh;
 }

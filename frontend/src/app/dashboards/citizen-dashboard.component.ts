@@ -1,215 +1,194 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { GrievanceService } from '../services/grievance.service';
+import { ThemeService } from '../services/theme.service';
+import { SidebarComponent } from '../shared/sidebar.component';
+import { TopbarComponent } from '../shared/topbar.component';
+
+/* FIX: add badge in type */
+type NavItem = {
+  icon: string;
+  label: string;
+  route: string;
+  active?: boolean;
+  badge?: number;
+};
+
+type NavSection = {
+  label: string;
+  items: NavItem[];
+};
 
 @Component({
   selector: 'app-citizen-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, SidebarComponent, TopbarComponent],
   template: `
-    <div class="app-layout">
-      <!-- SIDEBAR -->
-      <aside class="sidebar">
-        <div class="sidebar-brand">
-          <div class="brand-dot">🏙️</div>
-          <div class="brand-text">Civic<span>Pulse</span></div>
-        </div>
-        <div class="user-pill">
-          <div class="user-dot"></div>
-          <div>
-            <div class="user-role">CITIZEN</div>
-            <div class="user-name">&#64;{{ auth.getUsername() }}</div>
-          </div>
-        </div>
+    <div class="page-layout">
+      <app-sidebar
+        role="CITIZEN"
+        homeRoute="/citizen/dashboard"
+        [sections]="navSections">
+      </app-sidebar>
 
-        <div class="nav-section-label">MAIN</div>
-        <div class="nav-item active" (click)="router.navigate(['/citizen/dashboard'])">
-          <span class="nav-icon">🏠</span> Overview
-        </div>
-        <div class="nav-item" (click)="router.navigate(['/citizen/submit'])">
-          <span class="nav-icon">➕</span> Submit Grievance
-        </div>
-        <div class="nav-item" (click)="router.navigate(['/citizen/my-complaints'])">
-          <span class="nav-icon">☰</span> My Grievances
-          <span class="nav-badge" *ngIf="grievances.length > 0">{{ grievances.length }}</span>
-        </div>
-        <div class="nav-item" (click)="router.navigate(['/admin/analytics'])">
-          <span class="nav-icon">📊</span> Analytics
-        </div>
+      <div class="main-content">
+        <!-- FIX: null-safe subtitle -->
+        <app-topbar 
+          title="Overview" 
+          [subtitle]="(today | date:'EEEE, d MMMM yyyy') || ''" 
+          role="CITIZEN">
+        </app-topbar>
 
-        <div class="nav-section-label">ACCOUNT</div>
-        <div class="nav-item" (click)="router.navigate(['/citizen/feedback/1'])">
-          <span class="nav-icon">⭐</span> Feedback & Ratings
-        </div>
-        <div class="nav-item">
-          <span class="nav-icon">👤</span> My Profile
-        </div>
-        <div class="nav-item">
-          <span class="nav-icon">🔔</span> Notifications
-          <span class="nav-badge" style="background:#f59e0b">2</span>
-        </div>
+        <div class="content">
+          <h2 class="greeting">Welcome, <span class="gold">{{ auth.getUsername() }}</span></h2>
+          <p class="g-sub">Here's an overview of your civic contributions</p>
 
-        <div class="sidebar-footer">
-          <button class="signout-btn" (click)="auth.logout()">
-            <span>↪</span> Sign Out
-          </button>
-        </div>
-      </aside>
-
-      <!-- MAIN -->
-      <main class="main-content">
-        <div class="topnav">
-          <div>
-            <div class="page-title">Dashboard</div>
-            <div class="page-date">{{ today }}</div>
-          </div>
-          <div class="topnav-right">
-            <div class="role-badge">CITIZEN</div>
-            <div class="avatar">{{ auth.getUsername()?.[0]?.toUpperCase() }}</div>
-          </div>
-        </div>
-
-        <!-- WELCOME BANNER -->
-        <div class="welcome-banner">
-          <div class="welcome-text">
-            <h2>Welcome back, <span>{{ auth.getUsername() }}</span> 👋</h2>
-            <p>Track your grievances and report new civic issues from here.</p>
-          </div>
-          <div class="welcome-icon">🏘️</div>
-        </div>
-
-        <!-- STATS -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-card-header">
-              <div class="stat-icon-box" style="background:rgba(59,130,246,0.1)">📋</div>
-              <div class="stat-chip chip-blue">+1 today</div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">📊</div>
+              <div class="stat-num" style="color:var(--text, #e2e8f0)">{{ total }}</div>
+              <div class="stat-lbl">Total Submitted</div>
             </div>
-            <div class="stat-num">{{ pending }}</div>
-            <div class="stat-label">Open Issues</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-header">
-              <div class="stat-icon-box" style="background:rgba(245,158,11,0.1)">⚙️</div>
-              <div class="stat-chip chip-amber">Active</div>
+            <div class="stat-card">
+              <div class="stat-icon">⏳</div>
+              <div class="stat-num" style="color:var(--gold, #F0A500)">{{ pending }}</div>
+              <div class="stat-lbl">Open Issues</div>
             </div>
-            <div class="stat-num">{{ inProgress }}</div>
-            <div class="stat-label">In Progress</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-header">
-              <div class="stat-icon-box" style="background:rgba(34,197,94,0.1)">✅</div>
-              <div class="stat-chip chip-green">All time</div>
+            <div class="stat-card">
+              <div class="stat-icon">⚙️</div>
+              <div class="stat-num" style="color:var(--blue, #3b82f6)">{{ inProgress }}</div>
+              <div class="stat-lbl">In Progress</div>
             </div>
-            <div class="stat-num">{{ resolved }}</div>
-            <div class="stat-label">Resolved</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-header">
-              <div class="stat-icon-box" style="background:rgba(245,158,11,0.1)">🔔</div>
-              <div class="stat-chip chip-amber">Unread</div>
-            </div>
-            <div class="stat-num">2</div>
-            <div class="stat-label">Notifications</div>
-          </div>
-        </div>
-
-        <!-- CONTENT GRID -->
-        <div class="content-grid">
-          <!-- Recent Grievances -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">My Grievances</div>
-              <button class="view-all-btn" (click)="router.navigate(['/citizen/my-complaints'])">
-                View all →
-              </button>
-            </div>
-            <div *ngIf="grievances.length === 0" class="empty-state">
-              <div class="empty-icon">📭</div>
-              <h3>No complaints yet</h3>
-              <p>Submit your first grievance to get started</p>
-            </div>
-            <div class="grievance-item" *ngFor="let g of grievances.slice(0,4)"
-                 (click)="router.navigate(['/citizen/my-complaints'])">
-              <div class="g-icon">{{ getCategoryIcon(g.category) }}</div>
-              <div class="g-info">
-                <div class="g-title">{{ g.title }}</div>
-                <div class="g-meta">{{ g.location }} · {{ g.submissionDate | date:'dd MMM yyyy' }}</div>
-              </div>
-              <div class="g-badges">
-                <span class="badge" [ngClass]="getStatusClass(g.status)">{{ g.status }}</span>
-              </div>
+            <div class="stat-card">
+              <div class="stat-icon">✅</div>
+              <div class="stat-num" style="color:var(--green, #10b981)">{{ resolved }}</div>
+              <div class="stat-lbl">Resolved</div>
             </div>
           </div>
 
-          <!-- Quick Actions -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">Quick Actions</div>
+          <h3 class="section-title">Quick Actions</h3>
+          <div class="actions-grid">
+            <div class="action-card" (click)="router.navigate(['/citizen/submit'])">
+              <div class="ac-icon">📝</div>
+              <div class="ac-title">File New Complaint</div>
+              <div class="ac-sub">Report a civic issue in your area</div>
             </div>
-            <div class="quick-action-item" (click)="router.navigate(['/citizen/submit'])">
-              <div class="qa-icon">📝</div>
+            <div class="action-card" (click)="router.navigate(['/citizen/my-complaints'])">
+              <div class="ac-icon">🔍</div>
+              <div class="ac-title">Track My Issues</div>
+              <div class="ac-sub">{{ total }} total submissions</div>
+            </div>
+          </div>
+
+          <div class="section-header" *ngIf="recent.length > 0">
+            <h3 class="section-title" style="margin:0">Recent Grievances</h3>
+            <button class="view-all" (click)="router.navigate(['/citizen/my-complaints'])">
+              View All →
+            </button>
+          </div>
+
+          <div class="recent-card" *ngIf="recent.length > 0">
+            <div class="recent-row" *ngFor="let g of recent">
               <div>
-                <div class="qa-label">File New Grievance</div>
-                <div class="qa-sub">Report a civic issue in your area</div>
+                <div class="ri-title">{{ g.title }}</div>
+                <div class="ri-date">{{ g.submissionDate | date:'MMM d, yyyy' }}</div>
               </div>
-              <span class="qa-arrow">→</span>
-            </div>
-            <div class="quick-action-item" (click)="router.navigate(['/citizen/my-complaints'])">
-              <div class="qa-icon">📍</div>
-              <div>
-                <div class="qa-label">Track My Issues</div>
-                <div class="qa-sub">View status of your submissions</div>
-              </div>
-              <span class="qa-arrow">→</span>
-            </div>
-            <div class="quick-action-item">
-              <div class="qa-icon">👤</div>
-              <div>
-                <div class="qa-label">Edit Profile</div>
-                <div class="qa-sub">Update your account details</div>
-              </div>
-              <span class="qa-arrow">→</span>
+              <span class="badge-pill" [ngClass]="'badge-' + g.status?.toLowerCase()">
+                {{ g.status }}
+              </span>
             </div>
           </div>
+
+          <div class="loading-txt" *ngIf="loading">Loading your grievances...</div>
         </div>
-      </main>
+      </div>
     </div>
   `,
-  styleUrls: ['../../styles/shared-layout.scss'],
   styles: [`
-    :host { display: block; }
-    .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    .content { padding:24px; }
+    .greeting { font-size:26px; font-weight:700; color:var(--text, #e2e8f0); }
+    .gold { color:var(--gold, #F0A500); }
+    .g-sub { color:var(--text3, #64748b); font-size:13px; margin:4px 0 24px; }
+
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+    .stat-card { background:var(--bg-card, #162032); border:1px solid var(--border, rgba(255,255,255,0.08));
+      border-radius:14px; padding:20px; text-align:center; }
+    .stat-icon { font-size:22px; margin-bottom:8px; }
+    .stat-num { font-size:34px; font-weight:800; }
+    .stat-lbl { font-size:12px; color:var(--text3, #64748b); margin-top:4px; }
+
+    .section-title { color:var(--text, #e2e8f0); font-size:16px; font-weight:600; margin:0 0 14px; }
+    .section-header { display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:14px; }
+    .view-all { background:transparent; border:1px solid var(--border, rgba(255,255,255,0.08));
+      color:var(--teal, #0EA5A0); padding:5px 14px; border-radius:8px;
+      cursor:pointer; font-size:12px; }
+
+    .actions-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:28px; }
+    .action-card { background:var(--bg-card, #162032); border:1px solid var(--border, rgba(255,255,255,0.08));
+      border-radius:14px; padding:22px; cursor:pointer; transition:all 0.2s; }
+    .action-card:hover { border-color:var(--teal, #0EA5A0); transform:translateY(-2px); }
+    .ac-icon { font-size:26px; margin-bottom:10px; }
+    .ac-title { color:var(--text, #e2e8f0); font-weight:600; font-size:14px; margin-bottom:4px; }
+    .ac-sub { color:var(--text3, #64748b); font-size:12px; }
+
+    .recent-card { background:var(--bg-card, #162032); border:1px solid var(--border, rgba(255,255,255,0.08));
+      border-radius:14px; overflow:hidden; }
+    .recent-row { display:flex; align-items:center; justify-content:space-between;
+      padding:13px 20px; border-bottom:1px solid var(--border2, rgba(255,255,255,0.04)); }
+    .recent-row:last-child { border-bottom:none; }
+    .ri-title { color:var(--text, #e2e8f0); font-size:13px; font-weight:500; }
+    .ri-date { color:var(--text3, #64748b); font-size:11px; margin-top:2px; }
+
+    .loading-txt { text-align:center; padding:32px; color:var(--text3, #64748b); font-size:14px; }
   `]
 })
 export class CitizenDashboardComponent implements OnInit {
-  grievances: any[] = [];
-  pending = 0; inProgress = 0; resolved = 0;
-  today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-  constructor(public auth: AuthService, public router: Router, private gs: GrievanceService) {}
+  total = 0; pending = 0; inProgress = 0; resolved = 0;
+  recent: any[] = [];
+  loading = true;
+  today = new Date();
+
+  /* FIX: typed navSections */
+  navSections: NavSection[] = [
+    {
+      label: 'MAIN', items: [
+        { icon: '🏠', label: 'Overview', route: '/citizen/dashboard', active: true },
+        { icon: '➕', label: 'Submit Grievance', route: '/citizen/submit' },
+        { icon: '📋', label: 'My Grievances', route: '/citizen/my-complaints' },
+        { icon: '⭐', label: 'Feedback & Ratings', route: '/citizen/feedback' },
+      ]
+    }
+  ];
+
+  constructor(public auth: AuthService, public router: Router,
+    public theme: ThemeService, private gs: GrievanceService) { }
 
   ngOnInit() {
     this.gs.getMyGrievances().subscribe({
       next: data => {
-        this.grievances = data;
-        this.pending    = data.filter(g => g.status === 'PENDING').length;
-        this.inProgress = data.filter(g => g.status === 'IN_PROGRESS').length;
-        this.resolved   = data.filter(g => g.status === 'RESOLVED').length;
+        this.loading = false;
+        this.total = data.length;
+        this.pending = data.filter((g: any) => g.status === 'PENDING').length;
+        this.inProgress = data.filter((g: any) => g.status === 'IN_PROGRESS').length;
+        this.resolved = data.filter((g: any) =>
+          g.status === 'RESOLVED' || g.status === 'CLOSED').length;
+
+        this.recent = [...data].sort((a, b) =>
+          new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()
+        ).slice(0, 5);
+
+        /* FIX: now valid */
+        if (this.navSections[0].items[2]) {
+           this.navSections[0].items[2].badge = this.total;
+        }
       },
-      error: () => {}
+      error: () => { this.loading = false; }
     });
   }
 
-  getCategoryIcon(cat: string): string {
-    const m: any = { WATER: '💧', ROAD: '🛣️', SANITATION: '🗑️', ELECTRICITY: '⚡', STREET_LIGHT: '💡', OTHER: '📋' };
-    return m[cat] || '📋';
-  }
-
-  getStatusClass(s: string): string {
-    const m: any = { PENDING: 'badge-pending', IN_PROGRESS: 'badge-progress', RESOLVED: 'badge-resolved', REOPENED: 'badge-reopened' };
-    return m[s] || 'badge-pending';
-  }
+  get navSectionsWithBadge() { return this.navSections; }
 }
