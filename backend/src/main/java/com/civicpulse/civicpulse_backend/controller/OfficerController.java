@@ -27,7 +27,8 @@ public class OfficerController {
     @PutMapping("/grievance/{id}/resolve")
     public ResponseEntity<Grievance> resolve(
             @PathVariable Long id,
+            Authentication auth,
             @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(officerService.resolve(id, body));
+        return ResponseEntity.ok(officerService.resolve(id, auth.getName(), body));
     }
 }
