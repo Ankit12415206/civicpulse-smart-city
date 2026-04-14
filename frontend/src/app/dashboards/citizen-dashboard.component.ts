@@ -7,7 +7,6 @@ import { ThemeService } from '../services/theme.service';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { TopbarComponent } from '../shared/topbar.component';
 
-/* FIX: add badge in type */
 type NavItem = {
   icon: string;
   label: string;
@@ -34,10 +33,9 @@ type NavSection = {
       </app-sidebar>
 
       <div class="main-content">
-        <!-- FIX: null-safe subtitle -->
-        <app-topbar 
-          title="Overview" 
-          [subtitle]="(today | date:'EEEE, d MMMM yyyy') || ''" 
+        <app-topbar
+          title="Overview"
+          [subtitle]="(today | date:'EEEE, d MMMM yyyy') || ''"
           role="CITIZEN">
         </app-topbar>
 
@@ -147,26 +145,32 @@ type NavSection = {
 })
 export class CitizenDashboardComponent implements OnInit {
 
-  total = 0; pending = 0; inProgress = 0; resolved = 0;
+  total = 0;
+  pending = 0;
+  inProgress = 0;
+  resolved = 0;
   recent: any[] = [];
   loading = true;
   today = new Date();
 
-  /* FIX: typed navSections */
   navSections: NavSection[] = [
     {
       label: 'MAIN', items: [
         { icon: '🏠', label: 'Overview', route: '/citizen/dashboard', active: true },
         { icon: '➕', label: 'Submit Grievance', route: '/citizen/submit' },
         { icon: '📋', label: 'My Grievances', route: '/citizen/my-complaints' },
-        { icon: '⭐', label: 'Feedback & Ratings', route: '/citizen/feedback' },
+        { icon: '⭐', label: 'Feedback & Ratings', route: '/citizen/feedback' }
       ]
     }
   ];
 
-  constructor(public auth: AuthService, public router: Router,
-    public theme: ThemeService, private gs: GrievanceService,
-    private cdr: ChangeDetectorRef) { }
+  constructor(
+    public auth: AuthService,
+    public router: Router,
+    public theme: ThemeService,
+    private gs: GrievanceService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.gs.getMyGrievances().subscribe({
@@ -183,9 +187,8 @@ export class CitizenDashboardComponent implements OnInit {
           new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()
         ).slice(0, 5);
 
-        /* FIX: now valid */
         if (this.navSections[0].items[2]) {
-           this.navSections[0].items[2].badge = this.total;
+          this.navSections[0].items[2].badge = this.total;
         }
         this.cdr.detectChanges();
       },
@@ -195,8 +198,6 @@ export class CitizenDashboardComponent implements OnInit {
       }
     });
   }
-
-  get navSectionsWithBadge() { return this.navSections; }
 
   private normalizeGrievancesResponse(response: any): any[] {
     if (Array.isArray(response)) {
