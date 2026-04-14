@@ -1,5 +1,4 @@
-import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
@@ -8,35 +7,26 @@ import { tap } from 'rxjs/operators';
 export class AuthService {
 
   private API = 'http://localhost:8080/api/auth';
-  private isBrowser: boolean;
-  
-  // In-memory cache to prevent storage access race conditions
-  private _token: string | null = null;
-  private _role: string | null = null;
-  private _username: string | null = null;
-  private _initialized = false;
 
   constructor(
     private http: HttpClient,
-    private router: Router,
-    @Inject(PLATFORM_ID) platformId: Object
+    private router: Router
   ) {
-    this.isBrowser = isPlatformBrowser(platformId);
+    this.loadAuthState();
   }
 
-  private storage(key: string): string | null {
-    if (!this.isBrowser) return null;
-    return localStorage.getItem(key);
-  }
-
-  private storageSet(key: string, value: string): void {
-    if (!this.isBrowser) return;
-    localStorage.setItem(key, value);
-  }
-
-  private storageClear(): void {
-    if (!this.isBrowser) return;
-    localStorage.clear();
+  private loadAuthState(): void {
+    // Load persisted auth state from localStorage immediately
+    const token = localStorage.getItem('civicpulse_token');
+    const role = localStorage.getItem('civicpulse_role');
+    const username = localStorage.getItem('civicpulse_username');
+    
+    // If any auth data is missing while token exists, clear all (corrupted state)
+    if (token && (!role || !username)) {
+      localStorage.removeItem('civicpulse_token');
+      localStorage.removeItem('civicpulse_role');
+      localStorage.removeItem('civicpulse_username');
+    }
   }
 
   register(data: any) {
@@ -46,51 +36,38 @@ export class AuthService {
   login(data: any) {
     return this.http.post<any>(`${this.API}/login`, data).pipe(
       tap(res => {
-        this._token = res.token;
-        this._role = res.role;
-        this._username = res.username;
-        this.storageSet('token', res.token);
-        this.storageSet('role', res.role);
-        this.storageSet('username', res.username);
+        // Ensure we have all required fields before storing
+        if (res && res.token && res.role && res.username) {
+          localStorage.setItem('civicpulse_token', res.token);
+          localStorage.setItem('civicpulse_role', res.role);
+          localStorage.setItem('civicpulse_username', res.username);
+        }
       })
     );
   }
 
   logout() {
-    this._token = null;
-    this._role = null;
-    this._username = null;
-    this.storageClear();
+    localStorage.removeItem('civicpulse_token');
+    localStorage.removeItem('civicpulse_role');
+    localStorage.removeItem('civicpulse_username');
     this.router.navigate(['/login']);
   }
 
-  initializeAuth(): void {
-    // Load auth state from localStorage on app startup
-    if (this.isBrowser && !this._initialized) {
-      this._token = localStorage.getItem('token');
-      this._role = localStorage.getItem('role');
-      this._username = localStorage.getItem('username');
-      this._initialized = true;
-    }
-  }
-
-  getToken(): string | null    { 
-    if (!this._initialized) this.initializeAuth();
-    return this._token || this.storage('token'); 
+  getToken(): string | null { 
+    return localStorage.getItem('civicpulse_token'); 
   }
   
-  getRole(): string | null     { 
-    if (!this._initialized) this.initializeAuth();
-    return this._role || this.storage('role'); 
+  getRole(): string | null { 
+    return localStorage.getItem('civicpulse_role'); 
   }
   
   getUsername(): string | null { 
-    if (!this._initialized) this.initializeAuth();
-    return this._username || this.storage('username'); 
+    return localStorage.getItem('civicpulse_username'); 
   }
   
-  isLoggedIn(): boolean        { 
-    if (!this._initialized) this.initializeAuth();
-    return !!this.getToken(); 
+  isLoggedIn(): boolean { 
+    const token = localStorage.getItem('civicpulse_token');
+    const role = localStorage.getItem('civicpulse_role');
+    return !!(token && role);
   }
 }
