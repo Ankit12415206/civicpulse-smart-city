@@ -4,53 +4,19 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AdminService } from '../../services/admin.service';
 import { AuthService } from '../../services/auth.service';
+import { SidebarComponent, NavItem } from '../../shared/sidebar.component';
+import { TopbarComponent } from '../../shared/topbar.component';
 
 @Component({
   selector: 'app-manage-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
   template: `
-    <div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
-      <aside class="sidebar">
-        <div class="sidebar-brand">
-          <div class="brand-dot">🏙️</div>
-          <div class="brand-text">Civic<span>Pulse</span></div>
-          <button class="sidebar-toggle" type="button" (click)="toggleSidebar()">{{ sidebarCollapsed ? '»' : '«' }}</button>
-        </div>
+    <div class="page-layout">
+      <app-sidebar role="ADMIN" homeRoute="/admin/dashboard" [sections]="navSections"></app-sidebar>
 
-        <div class="user-pill">
-          <div class="user-dot" style="background:#60a5fa"></div>
-          <div>
-            <div class="user-role" style="color:#60a5fa">ADMIN</div>
-            <div class="user-name">&#64;{{ auth.getUsername() }}</div>
-          </div>
-        </div>
-
-        <div class="nav-section-label">MANAGEMENT</div>
-        <div class="nav-item" (click)="router.navigate(['/admin/dashboard'])"><span class="nav-icon">🏠</span> Dashboard</div>
-        <div class="nav-item" (click)="router.navigate(['/admin/grievances'])"><span class="nav-icon">☰</span> All Grievances</div>
-        <div class="nav-item" (click)="router.navigate(['/admin/grievances'])"><span class="nav-icon">👤</span> Assign Officers</div>
-        <div class="nav-item active"><span class="nav-icon">👥</span> Manage Users <span class="nav-badge">{{ users.length }}</span></div>
-
-        <div class="nav-section-label">ANALYTICS</div>
-        <div class="nav-item" (click)="router.navigate(['/admin/analytics'])"><span class="nav-icon">📊</span> Analytics & Reports</div>
-
-        <div class="sidebar-footer">
-          <button class="signout-btn" (click)="auth.logout()"><span>↪</span> Sign Out</button>
-        </div>
-      </aside>
-
-      <main class="main-content">
-        <div class="topnav">
-          <div>
-            <div class="page-title">Manage Users</div>
-            <div class="page-date">{{ today }}</div>
-          </div>
-          <div class="topnav-right">
-            <div class="role-badge" style="border-color:#60a5fa; color:#60a5fa">ADMIN</div>
-            <div class="avatar" style="background:#2563eb">A</div>
-          </div>
-        </div>
+      <div class="main-content">
+        <app-topbar title="Manage Users" [subtitle]="today" role="ADMIN"></app-topbar>
 
         <div class="page-content users-page-content">
           <div class="page-header">
@@ -135,7 +101,7 @@ import { AuthService } from '../../services/auth.service';
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   `,
   styleUrls: ['../../../styles/shared-layout.scss'],
@@ -158,9 +124,23 @@ export class ManageUsersComponent implements OnInit {
   deletingUserId: number | null = null;
   error = '';
   success = '';
-  sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === '1';
   today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   String = String;
+  navSections: { label: string; items: NavItem[] }[] = [
+    {
+      label: 'MANAGEMENT', items: [
+        { icon: '🏠', label: 'Dashboard', route: '/admin/dashboard' },
+        { icon: '☰', label: 'All Grievances', route: '/admin/grievances' },
+        { icon: '👤', label: 'Assign Officers', route: '/admin/grievances' },
+        { icon: '👥', label: 'Manage Users', route: '/admin/users', active: true }
+      ]
+    },
+    {
+      label: 'ANALYTICS', items: [
+        { icon: '📊', label: 'Analytics & Reports', route: '/admin/analytics' }
+      ]
+    }
+  ];
 
   constructor(
     private adminService: AdminService,
@@ -192,6 +172,7 @@ export class ManageUsersComponent implements OnInit {
         const users = this.normalizeUsersResponse(response);
         this.users = users;
         this.applyFilter();
+        this.navSections[0].items[3].badge = this.users.length;
 
         if (!Array.isArray(response) && users.length === 0) {
           this.error = 'Users response format is unexpected. Refresh and try again.';
@@ -263,6 +244,7 @@ export class ManageUsersComponent implements OnInit {
         this.success = 'User deleted successfully.';
         this.users = this.users.filter(u => u.id !== user.id);
         this.applyFilter();
+        this.navSections[0].items[3].badge = this.users.length;
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -273,8 +255,4 @@ export class ManageUsersComponent implements OnInit {
     });
   }
 
-  toggleSidebar() {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
-    localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed ? '1' : '0');
-  }
 }

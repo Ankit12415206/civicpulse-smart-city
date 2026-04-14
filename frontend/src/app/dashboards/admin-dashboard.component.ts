@@ -3,72 +3,19 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { GrievanceService } from '../services/grievance.service';
+import { SidebarComponent, NavItem } from '../shared/sidebar.component';
+import { TopbarComponent } from '../shared/topbar.component';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SidebarComponent, TopbarComponent],
   template: `
-    <div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
-      <aside class="sidebar">
-        <div class="sidebar-brand">
-          <div class="brand-dot">🏙️</div>
-          <div class="brand-text">Civic<span>Pulse</span></div>
-          <button class="sidebar-toggle" type="button" (click)="toggleSidebar()">{{ sidebarCollapsed ? '»' : '«' }}</button>
-        </div>
-        <div class="user-pill">
-          <div class="user-dot" style="background:#60a5fa"></div>
-          <div>
-            <div class="user-role" style="color:#60a5fa">ADMIN</div>
-            <div class="user-name">&#64;{{ auth.getUsername() }}</div>
-          </div>
-        </div>
+    <div class="page-layout">
+      <app-sidebar role="ADMIN" homeRoute="/admin/dashboard" [sections]="navSections"></app-sidebar>
 
-        <div class="nav-section-label">MANAGEMENT</div>
-        <div class="nav-item active">
-          <span class="nav-icon">🏠</span> Dashboard
-        </div>
-        <div class="nav-item" (click)="router.navigate(['/admin/grievances'])">
-          <span class="nav-icon">☰</span> All Grievances
-          <span class="nav-badge">{{ total }}</span>
-        </div>
-        <div class="nav-item" (click)="router.navigate(['/admin/grievances'])">
-          <span class="nav-icon">👤</span> Assign Officers
-          <span class="nav-badge" style="background:#f59e0b">{{ pending }}</span>
-        </div>
-        <div class="nav-item" (click)="router.navigate(['/admin/users'])">
-          <span class="nav-icon">👥</span> Manage Users
-        </div>
-
-        <div class="nav-section-label">ANALYTICS</div>
-        <div class="nav-item" (click)="router.navigate(['/admin/analytics'])">
-          <span class="nav-icon">📊</span> Analytics & Reports
-        </div>
-        <div class="nav-item" (click)="router.navigate(['/admin/analytics'])">
-          <span class="nav-icon">📈</span> SLA Reports
-        </div>
-        <div class="nav-item">
-          <span class="nav-icon">⚙️</span> System Settings
-        </div>
-
-        <div class="sidebar-footer">
-          <button class="signout-btn" (click)="auth.logout()">
-            <span>↪</span> Sign Out
-          </button>
-        </div>
-      </aside>
-
-      <main class="main-content">
-        <div class="topnav">
-          <div>
-            <div class="page-title">Dashboard</div>
-            <div class="page-date">{{ today }}</div>
-          </div>
-          <div class="topnav-right">
-            <div class="role-badge" style="border-color:#60a5fa; color:#60a5fa">ADMIN</div>
-            <div class="avatar" style="background:#2563eb">A</div>
-          </div>
-        </div>
+      <div class="main-content">
+        <app-topbar title="Overview" [subtitle]="today" role="ADMIN"></app-topbar>
 
         <div class="welcome-banner" style="background: linear-gradient(135deg, #0d1b3e 0%, #0a1628 100%); border-color:#1e3a5f">
           <div class="welcome-text">
@@ -167,7 +114,7 @@ import { GrievanceService } from '../services/grievance.service';
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   `,
   styleUrls: ['../../styles/shared-layout.scss'],
@@ -176,8 +123,22 @@ import { GrievanceService } from '../services/grievance.service';
 export class AdminDashboardComponent implements OnInit {
   grievances: any[] = [];
   total = 0; pending = 0; inProgress = 0; resolved = 0; recent = 0; urgent = 0;
-  sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === '1';
   today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  navSections: { label: string; items: NavItem[] }[] = [
+    {
+      label: 'MANAGEMENT', items: [
+        { icon: '🏠', label: 'Dashboard', route: '/admin/dashboard', active: true },
+        { icon: '☰', label: 'All Grievances', route: '/admin/grievances' },
+        { icon: '👤', label: 'Assign Officers', route: '/admin/grievances' },
+        { icon: '👥', label: 'Manage Users', route: '/admin/users' }
+      ]
+    },
+    {
+      label: 'ANALYTICS', items: [
+        { icon: '📊', label: 'Analytics & Reports', route: '/admin/analytics' }
+      ]
+    }
+  ];
 
   constructor(public auth: AuthService, public router: Router, private gs: GrievanceService) {}
 
@@ -191,6 +152,8 @@ export class AdminDashboardComponent implements OnInit {
         this.resolved   = d.filter((g: any) => g.status === 'RESOLVED').length;
         this.urgent = d.filter((g: any) => g.priority >= 3).length;
         this.recent = Math.min(d.length, 8);
+        this.navSections[0].items[1].badge = this.total;
+        this.navSections[0].items[2].badge = this.pending;
       },
       error: () => {}
     });
@@ -208,10 +171,5 @@ export class AdminDashboardComponent implements OnInit {
 
   formatStatus(s: string): string {
     return s?.replace('_', ' ') || '';
-  }
-
-  toggleSidebar() {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
-    localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed ? '1' : '0');
   }
 }

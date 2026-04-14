@@ -1,11 +1,13 @@
 package com.civicpulse.civicpulse_backend.service;
 
+import com.civicpulse.civicpulse_backend.dto.AdminUserDto;
 import com.civicpulse.civicpulse_backend.model.*;
 import com.civicpulse.civicpulse_backend.repository.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -62,10 +64,30 @@ public class AdminService {
         return grievanceRepo.save(g);
     }
 
-    public List<User> getAllOfficers() {
+    public List<AdminUserDto> getAllOfficers() {
         return userRepo.findAll().stream()
                 .filter(u -> u.getRole() == Role.OFFICER)
+                .sorted(Comparator.comparing(User::getId))
+                .map(AdminUserDto::from)
                 .toList();
+    }
+
+    public List<AdminUserDto> getAllUsers() {
+        return userRepo.findAll().stream()
+                .sorted(Comparator.comparing(User::getId))
+                .map(AdminUserDto::from)
+                .toList();
+    }
+
+    public void deleteUser(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.getRole() == Role.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Admin users cannot be deleted");
+        }
+
+        userRepo.delete(user);
     }
 
     public List<Department> getAllDepartments() {

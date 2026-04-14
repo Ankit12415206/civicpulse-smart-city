@@ -5,52 +5,24 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AdminService } from '../../services/admin.service';
 import { GrievanceService } from '../../services/grievance.service';
 import { AuthService } from '../../services/auth.service';
+import { SidebarComponent, NavItem } from '../../shared/sidebar.component';
+import { TopbarComponent } from '../../shared/topbar.component';
 
 @Component({
   selector: 'app-assign-officer',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
   template: `
-    <div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
-      <aside class="sidebar">
-        <div class="sidebar-brand">
-          <div class="brand-dot">🏙️</div>
-          <div class="brand-text">Civic<span>Pulse</span></div>
-          <button class="sidebar-toggle" type="button" (click)="toggleSidebar()">{{ sidebarCollapsed ? '»' : '«' }}</button>
-        </div>
-        <div class="user-pill">
-          <div class="user-dot" style="background:#60a5fa"></div>
-          <div>
-            <div class="user-role" style="color:#60a5fa">ADMIN</div>
-            <div class="user-name">&#64;{{ auth.getUsername() }}</div>
-          </div>
-        </div>
-        <div class="nav-section-label">MANAGEMENT</div>
-        <div class="nav-item" (click)="router.navigate(['/admin/dashboard'])"><span class="nav-icon">🏠</span> Dashboard</div>
-        <div class="nav-item" (click)="router.navigate(['/admin/grievances'])"><span class="nav-icon">☰</span> All Grievances</div>
-        <div class="nav-item active"><span class="nav-icon">👤</span> Assign Officers</div>
-        <div class="nav-item" (click)="router.navigate(['/admin/users'])"><span class="nav-icon">👥</span> Manage Users</div>
-        <div class="nav-section-label">ANALYTICS</div>
-        <div class="nav-item" (click)="router.navigate(['/admin/analytics'])"><span class="nav-icon">📊</span> Analytics & Reports</div>
-        <div class="sidebar-footer">
-          <button class="signout-btn" (click)="auth.logout()"><span>↪</span> Sign Out</button>
-        </div>
-      </aside>
+    <div class="page-layout">
+      <app-sidebar role="ADMIN" homeRoute="/admin/dashboard" [sections]="navSections"></app-sidebar>
 
-      <main class="main-content">
-        <div class="topnav">
-          <div>
-            <div class="page-title">Assign Officer</div>
-            <div class="page-date">{{ today }}</div>
-          </div>
-          <div class="topnav-right">
-            <button class="view-all-btn" (click)="router.navigate(['/admin/grievances'])">← Back to List</button>
-            <div class="role-badge" style="border-color:#60a5fa; color:#60a5fa">ADMIN</div>
-            <div class="avatar" style="background:#2563eb">A</div>
-          </div>
-        </div>
+      <div class="main-content">
+        <app-topbar title="Assign Officer" [subtitle]="today" role="ADMIN"></app-topbar>
 
         <div class="page-content">
+          <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+            <button class="view-all-btn" (click)="router.navigate(['/admin/grievances'])">← Back to List</button>
+          </div>
           <div class="page-header">
             <h1>👤 Assign Department Officer</h1>
             <p>Set officer, priority, and SLA for grievance handling.</p>
@@ -157,7 +129,7 @@ import { AuthService } from '../../services/auth.service';
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   `,
   styleUrls: ['../../../styles/shared-layout.scss'],
@@ -239,8 +211,22 @@ export class AssignOfficerComponent implements OnInit {
   success = '';
   error = '';
   isSubmitting = false;
-  sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === '1';
   today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  navSections: { label: string; items: NavItem[] }[] = [
+    {
+      label: 'MANAGEMENT', items: [
+        { icon: '🏠', label: 'Dashboard', route: '/admin/dashboard' },
+        { icon: '☰', label: 'All Grievances', route: '/admin/grievances' },
+        { icon: '👤', label: 'Assign Officers', route: '/admin/grievances', active: true },
+        { icon: '👥', label: 'Manage Users', route: '/admin/users' }
+      ]
+    },
+    {
+      label: 'ANALYTICS', items: [
+        { icon: '📊', label: 'Analytics & Reports', route: '/admin/analytics' }
+      ]
+    }
+  ];
 
   constructor(private route: ActivatedRoute,
               private adminService: AdminService,
@@ -307,8 +293,4 @@ export class AssignOfficerComponent implements OnInit {
     }
   }
 
-  toggleSidebar() {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
-    localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed ? '1' : '0');
-  }
 }

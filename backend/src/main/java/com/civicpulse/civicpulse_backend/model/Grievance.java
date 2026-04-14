@@ -30,6 +30,7 @@ public class Grievance {
     private Long citizenId;
     private Long assignedOfficerId;
     private Long departmentId;
+    private String submittedIp;
 
     private String resolutionNote;
     private Integer priority = 1;
@@ -72,6 +73,9 @@ public class Grievance {
 
     public Long getDepartmentId() { return departmentId; }
     public void setDepartmentId(Long departmentId) { this.departmentId = departmentId; }
+
+    public String getSubmittedIp() { return submittedIp; }
+    public void setSubmittedIp(String submittedIp) { this.submittedIp = submittedIp; }
 
     public String getResolutionNote() { return resolutionNote; }
     public void setResolutionNote(String resolutionNote) { this.resolutionNote = resolutionNote; }

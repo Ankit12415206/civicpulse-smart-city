@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GrievanceService } from '../../services/grievance.service';
@@ -159,19 +159,39 @@ export class MyComplaintsComponent implements OnInit {
   }];
 
   constructor(private gs: GrievanceService, public auth: AuthService,
-    public router: Router, public theme: ThemeService) { }
+    public router: Router, public theme: ThemeService,
+    private cdr: ChangeDetectorRef) { }
 
   ngOnInit() {
     this.gs.getMyGrievances().subscribe({
-      next: data => {
+      next: (response: any) => {
+        const data = this.normalizeGrievancesResponse(response);
         this.loading = false;
         this.grievances = data.sort((a: any, b: any) =>
           new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime());
+        this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
         this.loadError = 'Failed to load your grievances. Please try again.';
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  private normalizeGrievancesResponse(response: any): any[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+    if (Array.isArray(response?.content)) {
+      return response.content;
+    }
+    if (Array.isArray(response?.data)) {
+      return response.data;
+    }
+    if (Array.isArray(response?.grievances)) {
+      return response.grievances;
+    }
+    return [];
   }
 }

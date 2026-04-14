@@ -1,5 +1,6 @@
 package com.civicpulse.civicpulse_backend.controller;
 
+import com.civicpulse.civicpulse_backend.dto.AdminUserDto;
 import com.civicpulse.civicpulse_backend.model.*;
 import com.civicpulse.civicpulse_backend.service.AdminService;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +26,19 @@ public class AdminController {
     }
 
     @GetMapping("/officers")
-    public ResponseEntity<List<User>> officers() {
+    public ResponseEntity<List<AdminUserDto>> officers() {
         return ResponseEntity.ok(adminService.getAllOfficers());
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<AdminUserDto>> users() {
+        return ResponseEntity.ok(adminService.getAllUsers());
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long id) {
+        adminService.deleteUser(id);
+        return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
     }
 
     @GetMapping("/departments")
