@@ -3,11 +3,12 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private API = 'http://localhost:8080/api/auth';
+  private API = `${environment.apiUrl}/auth`;
   private isBrowser: boolean;
 
   constructor(
@@ -16,28 +17,21 @@ export class AuthService {
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
-    // Only load auth state in browser, not on server
-    if (this.isBrowser) {
-      this.loadAuthState();
-    }
   }
 
-  private loadAuthState(): void {
-    // Load persisted auth state from localStorage on browser startup
-    const token = localStorage.getItem('civicpulse_token');
-    const role = localStorage.getItem('civicpulse_role');
-    const username = localStorage.getItem('civicpulse_username');
-    
-    // If any auth data is missing while token exists, clear all (corrupted state)
-    if (token && (!role || !username)) {
-      localStorage.removeItem('civicpulse_token');
-      localStorage.removeItem('civicpulse_role');
-      localStorage.removeItem('civicpulse_username');
-    }
+  private storage(key: string): string | null {
+    if (!this.isBrowser) return null;
+    return localStorage.getItem(key);
   }
 
-  private isInBrowser(): boolean {
-    return this.isBrowser && typeof localStorage !== 'undefined';
+  private storageSet(key: string, value: string): void {
+    if (!this.isBrowser) return;
+    localStorage.setItem(key, value);
+  }
+
+  private storageClear(): void {
+    if (!this.isBrowser) return;
+    localStorage.clear();
   }
 
   register(data: any) {
@@ -47,41 +41,20 @@ export class AuthService {
   login(data: any) {
     return this.http.post<any>(`${this.API}/login`, data).pipe(
       tap(res => {
-        // Ensure we have all required fields before storing
-        if (this.isInBrowser() && res && res.token && res.role && res.username) {
-          localStorage.setItem('civicpulse_token', res.token);
-          localStorage.setItem('civicpulse_role', res.role);
-          localStorage.setItem('civicpulse_username', res.username);
-        }
+        this.storageSet('token', res.token);
+        this.storageSet('role', res.role);
+        this.storageSet('username', res.username);
       })
     );
   }
 
   logout() {
-    if (this.isInBrowser()) {
-      localStorage.removeItem('civicpulse_token');
-      localStorage.removeItem('civicpulse_role');
-      localStorage.removeItem('civicpulse_username');
-    }
+    this.storageClear();
     this.router.navigate(['/login']);
   }
 
-  getToken(): string | null { 
-    return this.isInBrowser() ? localStorage.getItem('civicpulse_token') : null;
-  }
-  
-  getRole(): string | null { 
-    return this.isInBrowser() ? localStorage.getItem('civicpulse_role') : null;
-  }
-  
-  getUsername(): string | null { 
-    return this.isInBrowser() ? localStorage.getItem('civicpulse_username') : null;
-  }
-  
-  isLoggedIn(): boolean { 
-    if (!this.isInBrowser()) return false;
-    const token = localStorage.getItem('civicpulse_token');
-    const role = localStorage.getItem('civicpulse_role');
-    return !!(token && role);
-  }
+  getToken(): string | null { return this.storage('token'); }
+  getRole(): string | null { return this.storage('role'); }
+  getUsername(): string | null { return this.storage('username'); }
+  isLoggedIn(): boolean { return !!this.getToken(); }
 }

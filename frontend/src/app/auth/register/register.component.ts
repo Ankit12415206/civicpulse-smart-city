@@ -31,9 +31,12 @@ import { ThemeService } from '../../services/theme.service';
             <span class="info-lbl">Satisfaction</span>
           </div>
         </div>
-        <button class="theme-btn" (click)="theme.toggle()">
-          {{ theme.isDark() ? '☀️' : '🌙' }}
-        </button>
+        <div style="display:flex; gap:10px; width:100%; align-items:center;">
+          <div id="google_translate_element" style="background:rgba(255,255,255,0.08); padding:4px; border-radius:10px;"></div>
+          <button class="theme-btn" (click)="theme.toggle()" style="flex:1;">
+            {{ theme.isDark() ? '☀️' : '🌙' }}
+          </button>
+        </div>
       </div>
 
       <div class="right-panel">

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -6,7 +6,9 @@ import { GrievanceService } from '../services/grievance.service';
 import { ThemeService } from '../services/theme.service';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { TopbarComponent } from '../shared/topbar.component';
+import { ChatbotComponent } from '../shared/chatbot/chatbot.component';
 
+/* FIX: add badge in type */
 type NavItem = {
   icon: string;
   label: string;
@@ -23,7 +25,7 @@ type NavSection = {
 @Component({
   selector: 'app-citizen-dashboard',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, TopbarComponent],
+  imports: [CommonModule, SidebarComponent, TopbarComponent, ChatbotComponent],
   template: `
     <div class="page-layout">
       <app-sidebar
@@ -33,9 +35,10 @@ type NavSection = {
       </app-sidebar>
 
       <div class="main-content">
-        <app-topbar
-          title="Overview"
-          [subtitle]="(today | date:'EEEE, d MMMM yyyy') || ''"
+        <!-- FIX: null-safe subtitle -->
+        <app-topbar 
+          title="Overview" 
+          [subtitle]="(today | date:'EEEE, d MMMM yyyy') || ''" 
           role="CITIZEN">
         </app-topbar>
 
@@ -103,6 +106,7 @@ type NavSection = {
         </div>
       </div>
     </div>
+    <app-chatbot></app-chatbot>
   `,
   styles: [`
     .content { padding:24px; }
@@ -145,37 +149,29 @@ type NavSection = {
 })
 export class CitizenDashboardComponent implements OnInit {
 
-  total = 0;
-  pending = 0;
-  inProgress = 0;
-  resolved = 0;
+  total = 0; pending = 0; inProgress = 0; resolved = 0;
   recent: any[] = [];
   loading = true;
   today = new Date();
 
+  /* FIX: typed navSections */
   navSections: NavSection[] = [
     {
       label: 'MAIN', items: [
         { icon: '🏠', label: 'Overview', route: '/citizen/dashboard', active: true },
         { icon: '➕', label: 'Submit Grievance', route: '/citizen/submit' },
         { icon: '📋', label: 'My Grievances', route: '/citizen/my-complaints' },
-        { icon: '⭐', label: 'Feedback & Ratings', route: '/citizen/feedback' }
+        { icon: '⭐', label: 'Feedback & Ratings', route: '/citizen/feedback' },
       ]
     }
   ];
 
-  constructor(
-    public auth: AuthService,
-    public router: Router,
-    public theme: ThemeService,
-    private gs: GrievanceService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  constructor(public auth: AuthService, public router: Router,
+    public theme: ThemeService, private gs: GrievanceService) { }
 
   ngOnInit() {
     this.gs.getMyGrievances().subscribe({
-      next: (response: any) => {
-        const data = this.normalizeGrievancesResponse(response);
+      next: data => {
         this.loading = false;
         this.total = data.length;
         this.pending = data.filter((g: any) => g.status === 'PENDING').length;
@@ -187,31 +183,12 @@ export class CitizenDashboardComponent implements OnInit {
           new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()
         ).slice(0, 5);
 
-        if (this.navSections[0].items[2]) {
-          this.navSections[0].items[2].badge = this.total;
-        }
-        this.cdr.detectChanges();
+        /* FIX: now valid */
+        this.navSections[0].items[2].badge = this.total;
       },
-      error: () => {
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
+      error: () => { this.loading = false; }
     });
   }
 
-  private normalizeGrievancesResponse(response: any): any[] {
-    if (Array.isArray(response)) {
-      return response;
-    }
-    if (Array.isArray(response?.content)) {
-      return response.content;
-    }
-    if (Array.isArray(response?.data)) {
-      return response.data;
-    }
-    if (Array.isArray(response?.grievances)) {
-      return response.grievances;
-    }
-    return [];
-  }
+  get navSectionsWithBadge() { return this.navSections; }
 }

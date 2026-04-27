@@ -1,15 +1,16 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GrievanceService } from '../../services/grievance.service';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 import { SidebarComponent, NavItem } from '../../shared/sidebar.component';
+import { ChatbotComponent } from '../../shared/chatbot/chatbot.component';
 
 @Component({
   selector: 'app-my-complaints',
   standalone: true,
-  imports: [CommonModule, SidebarComponent],
+  imports: [CommonModule, SidebarComponent, ChatbotComponent],
   template: `
     <div class="page-layout">
       <app-sidebar role="CITIZEN" homeRoute="/citizen/dashboard"
@@ -86,6 +87,7 @@ import { SidebarComponent, NavItem } from '../../shared/sidebar.component';
         </div>
       </div>
     </div>
+    <app-chatbot></app-chatbot>
   `,
   styles: [`
     .topbar { background:var(--bg-card); border-bottom:1px solid var(--border);
@@ -159,39 +161,19 @@ export class MyComplaintsComponent implements OnInit {
   }];
 
   constructor(private gs: GrievanceService, public auth: AuthService,
-    public router: Router, public theme: ThemeService,
-    private cdr: ChangeDetectorRef) { }
+    public router: Router, public theme: ThemeService) { }
 
   ngOnInit() {
     this.gs.getMyGrievances().subscribe({
-      next: (response: any) => {
-        const data = this.normalizeGrievancesResponse(response);
+      next: data => {
         this.loading = false;
         this.grievances = data.sort((a: any, b: any) =>
           new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime());
-        this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
         this.loadError = 'Failed to load your grievances. Please try again.';
-        this.cdr.detectChanges();
       }
     });
-  }
-
-  private normalizeGrievancesResponse(response: any): any[] {
-    if (Array.isArray(response)) {
-      return response;
-    }
-    if (Array.isArray(response?.content)) {
-      return response.content;
-    }
-    if (Array.isArray(response?.data)) {
-      return response.data;
-    }
-    if (Array.isArray(response?.grievances)) {
-      return response.grievances;
-    }
-    return [];
   }
 }

@@ -27,7 +27,8 @@ import { ThemeService } from '../../services/theme.service';
           <div class="feat"><span class="feat-icon">🔔</span><span>Get resolution updates</span></div>
           <div class="feat"><span class="feat-icon">⭐</span><span>Rate the service</span></div>
         </div>
-        <div class="theme-row">
+        <div class="theme-row" style="display:flex; gap:10px; align-items:center;">
+          <div id="google_translate_element" style="background:rgba(255,255,255,0.08); padding:4px; border-radius:10px;"></div>
           <button class="theme-toggle-btn" (click)="theme.toggle()"
             [title]="theme.isDark() ? 'Switch to Light' : 'Switch to Dark'">
             {{ theme.isDark() ? '☀️' : '🌙' }}
@@ -163,6 +164,7 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
     if (isPlatformBrowser(this.pid)) {
       document.body.setAttribute('data-theme', this.theme.isDark() ? 'dark' : 'light');
+      document.body.style.background = this.theme.isDark() ? '#0f1923' : '#f0f4f8';
     }
   }
 

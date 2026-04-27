@@ -57,9 +57,9 @@ export interface NavItem {
     </aside>
   `,
   styles: [`
-    :host { display: block; flex-shrink: 0; width: 240px; }
-    .sidebar { background:var(--bg-sidebar); 
-      height:100vh; display:flex; flex-direction:column;
+    .sidebar { background:var(--bg-sidebar); width:240px;
+      min-height:100vh; display:flex; flex-direction:column;
+      position:fixed; top:0; left:0; bottom:0; z-index:50;
       border-right:1px solid var(--border); }
     .sb-brand { display:flex; align-items:center; gap:10px;
       padding:16px 20px; border-bottom:1px solid var(--border);

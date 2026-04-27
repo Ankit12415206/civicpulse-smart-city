@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 export class AdminService {
   private API = `${environment.apiUrl}/admin`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAllGrievances() {
     return this.http.get<any[]>(`${this.API}/grievance/all`);
@@ -16,27 +16,9 @@ export class AdminService {
     return this.http.get<any[]>(`${this.API}/officers`);
   }
 
-  getDepartments() {
-    return this.http.get<any[]>(`${this.API}/departments`);
-  }
-
-  getUsers() {
-    return this.http.get<any[]>(`${this.API}/users`);
-  }
-
-  deleteUser(id: number) {
-    return this.http.delete<{ message: string }>(`${this.API}/users/${id}`);
-  }
-
-  assignOfficer(id: number, officerId: number,
-                priority: number, deadlineDays: number, departmentId?: number) {
-    const payload: any = { officerId, priority, deadlineDays };
-    if (departmentId) {
-      payload.departmentId = departmentId;
-    }
-    return this.http.put(
-      `${this.API}/grievance/${id}/assign`,
-      payload
-    );
+  assignOfficer(id: number, officerId: number, priority: number, deadlineDays: number) {
+    return this.http.put(`${this.API}/grievance/${id}/assign`, {
+      officerId, priority, deadlineDays
+    });
   }
 }

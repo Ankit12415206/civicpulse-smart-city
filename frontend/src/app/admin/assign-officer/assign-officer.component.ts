@@ -4,293 +4,163 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdminService } from '../../services/admin.service';
 import { GrievanceService } from '../../services/grievance.service';
-import { AuthService } from '../../services/auth.service';
-import { SidebarComponent, NavItem } from '../../shared/sidebar.component';
-import { TopbarComponent } from '../../shared/topbar.component';
 
 @Component({
   selector: 'app-assign-officer',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
+  imports: [CommonModule, FormsModule],
   template: `
-    <div class="page-layout">
-      <app-sidebar role="ADMIN" homeRoute="/admin/dashboard" [sections]="navSections"></app-sidebar>
+    <div class="page">
+      <div class="topbar">
+        <span class="brand">CivicPulse Admin</span>
+        <button (click)="router.navigate(['/admin/grievances'])">
+          Back to List
+        </button>
+      </div>
+      <div class="body">
+        <div class="card" *ngIf="grievance">
+          <h2>Assign Officer</h2>
 
-      <div class="main-content">
-        <app-topbar title="Assign Officer" [subtitle]="today" role="ADMIN"></app-topbar>
-
-        <div class="page-content">
-          <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-            <button class="view-all-btn" (click)="router.navigate(['/admin/grievances'])">← Back to List</button>
-          </div>
-          <div class="page-header">
-            <h1>👤 Assign Department Officer</h1>
-            <p>Set officer, priority, and SLA for grievance handling.</p>
-          </div>
-
-          <div *ngIf="error" class="msg-error">{{ error }}</div>
-          <div *ngIf="success" class="msg-success">{{ success }}</div>
-
-          <div class="content-grid" style="padding:0; grid-template-columns:1fr 340px;">
-            <div class="card" *ngIf="grievance">
-              <div class="card-header">
-                <div class="card-title">Grievance Details</div>
-                <span class="badge" [ngClass]="grievance.status === 'PENDING' ? 'badge-pending' : 'badge-progress'">
-                  {{ grievance.status?.replace('_', ' ') }}
-                </span>
-              </div>
-              <div style="padding:20px;">
-                <div class="info-grid">
-                  <div class="info-item">
-                    <span class="lbl">Title</span>
-                    <span class="val">{{ grievance.title }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="lbl">Category</span>
-                    <span class="val">{{ grievance.category }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="lbl">Location</span>
-                    <span class="val">{{ grievance.location }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="lbl">Submitted</span>
-                    <span class="val">{{ grievance.submissionDate | date:'dd MMM yyyy, hh:mm a' }}</span>
-                  </div>
-                  <div class="info-item full">
-                    <span class="lbl">Description</span>
-                    <span class="val">{{ grievance.description }}</span>
-                  </div>
-                </div>
-
-                <div class="form-group" style="margin-top:18px;">
-                  <label class="form-label">Select Officer</label>
-                  <select class="form-select" [(ngModel)]="selectedOfficer">
-                    <option value="">-- Select Officer --</option>
-                    <option *ngFor="let o of officers" [value]="o.id">
-                      {{ o.username }} ({{ o.email }})
-                    </option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Department</label>
-                  <select class="form-select" [(ngModel)]="selectedDepartment">
-                    <option value="">-- Optional Department --</option>
-                    <option *ngFor="let d of departments" [value]="d.id">
-                      {{ d.name }} ({{ d.category }})
-                    </option>
-                  </select>
-                </div>
-
-                <div class="assignment-grid">
-                  <div class="form-group">
-                    <label class="form-label">Priority</label>
-                    <select class="form-select" [(ngModel)]="priority">
-                      <option value="1">Low (P1)</option>
-                      <option value="2">Medium (P2)</option>
-                      <option value="3">High (P3)</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">SLA Deadline</label>
-                    <select class="form-select" [(ngModel)]="deadlineDays">
-                      <option value="1">1 day</option>
-                      <option value="3">3 days</option>
-                      <option value="7">7 days</option>
-                      <option value="14">14 days</option>
-                      <option value="30">30 days</option>
-                    </select>
-                  </div>
-                </div>
-
-                <button class="submit-btn" (click)="onAssign()" [disabled]="isSubmitting || !selectedOfficer">
-                  {{ isSubmitting ? 'Assigning...' : 'Assign Officer (Status → In Progress)' }}
-                </button>
-              </div>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="lbl">Title</span>
+              <span class="val">{{ grievance.title }}</span>
             </div>
-
-            <div class="card">
-              <div class="card-header"><div class="card-title">Officer & Department Info</div></div>
-              <div style="padding:16px 18px; display:flex; flex-direction:column; gap:12px;">
-                <div class="info-note">
-                  Suggested department for this category:
-                  <strong>{{ recommendedDepartment || 'No direct match' }}</strong>
-                </div>
-                <div class="mini-list">
-                  <div class="mini-title">Officers ({{ officers.length }})</div>
-                  <div *ngFor="let o of officers" class="mini-item">{{ o.username }} · {{ o.email }}</div>
-                </div>
-                <div class="mini-list">
-                  <div class="mini-title">Departments ({{ departments.length }})</div>
-                  <div *ngFor="let d of departments" class="mini-item">{{ d.name }} · {{ d.category }}</div>
-                </div>
-              </div>
+            <div class="info-item">
+              <span class="lbl">Category</span>
+              <span class="val">{{ grievance.category }}</span>
+            </div>
+            <div class="info-item">
+              <span class="lbl">Location</span>
+              <span class="val">{{ grievance.location }}</span>
+            </div>
+            <div class="info-item full">
+              <span class="lbl">Description</span>
+              <span class="val">{{ grievance.description }}</span>
             </div>
           </div>
+
+          <label>Select Officer *</label>
+          <select [(ngModel)]="selectedOfficer">
+            <option value="">-- Select Officer --</option>
+            <option *ngFor="let o of officers" [value]="o.id">
+              {{ o.username }} — {{ o.email }}
+            </option>
+          </select>
+
+          <label>Priority Level *</label>
+          <select [(ngModel)]="priority">
+            <option value="1">Low Priority</option>
+            <option value="2">Medium Priority</option>
+            <option value="3">High Priority</option>
+          </select>
+
+          <label>Deadline (days to resolve) *</label>
+          <select [(ngModel)]="deadlineDays">
+            <option value="1">1 day</option>
+            <option value="3">3 days</option>
+            <option value="7">7 days</option>
+            <option value="14">14 days</option>
+            <option value="30">30 days</option>
+          </select>
+
+          <p class="success" *ngIf="success">{{ success }}</p>
+          <p class="err"     *ngIf="error">{{ error }}</p>
+
+          <button (click)="onAssign()"
+            [disabled]="!selectedOfficer">
+            Assign Officer & Set Deadline
+          </button>
         </div>
       </div>
     </div>
   `,
-  styleUrls: ['../../../styles/shared-layout.scss'],
   styles: [`
-    :host { display: block; }
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      background: #0d1117;
-      border: 1px solid #1e293b;
-      border-radius: 10px;
-      padding: 14px;
-    }
-    .info-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .info-item.full { grid-column: 1 / -1; }
-    .lbl {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      color: #475569;
-      font-weight: 700;
-    }
-    .val {
-      font-size: 13px;
-      color: #cbd5e1;
-      line-height: 1.5;
-      word-break: break-word;
-    }
-    .assignment-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .info-note {
-      background: rgba(96, 165, 250, 0.1);
-      border: 1px solid rgba(96, 165, 250, 0.25);
-      color: #bfdbfe;
-      font-size: 12px;
-      border-radius: 8px;
-      padding: 10px 12px;
-      line-height: 1.5;
-    }
-    .mini-list {
-      border: 1px solid #1e293b;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .mini-title {
-      background: #0d1117;
-      color: #94a3b8;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 10px 12px;
-      border-bottom: 1px solid #1e293b;
-    }
-    .mini-item {
-      padding: 9px 12px;
-      color: #cbd5e1;
-      font-size: 12px;
-      border-bottom: 1px solid #1e293b;
-    }
-    .mini-item:last-child { border-bottom: 0; }
+    .page { min-height:100vh; background:var(--bg-main); }
+    .topbar { background:var(--teal); color:#fff; padding:14px 24px;
+      display:flex; align-items:center; gap:12px; }
+    .brand { flex:1; font-size:18px; font-weight:600; }
+    .topbar button { padding:6px 14px; background:rgba(255,255,255,0.2); color:#fff;
+      border:none; border-radius:6px; cursor:pointer; font-weight:600; }
+    .topbar button:hover { background:rgba(255,255,255,0.3); }
+    .body { padding:24px; display:flex; justify-content:center; }
+    .card { background:var(--bg-card); padding:32px; border-radius:16px;
+      width:100%; max-width:560px; border:1px solid var(--border);
+      box-shadow:0 2px 12px rgba(0,0,0,0.15); }
+    h2 { color:var(--teal); margin:0 0 20px; }
+    .info-grid { display:grid; grid-template-columns:1fr 1fr;
+      gap:10px; background:var(--bg-card2); border-radius:10px;
+      padding:16px; margin-bottom:20px; }
+    .info-item { display:flex; flex-direction:column; gap:3px; }
+    .info-item.full { grid-column:1/-1; }
+    .lbl { font-size:10px; color:var(--text3); text-transform:uppercase; }
+    .val { font-size:13px; color:var(--text); font-weight:500; }
+    label { display:block; font-size:12px; color:var(--text2);
+      margin:14px 0 5px; }
+    select { width:100%; padding:10px 14px; border:1px solid var(--border);
+      border-radius:8px; font-size:14px; background:var(--bg-card2);
+      color:var(--text); outline:none; }
+    select:focus { border-color:var(--teal); }
+    select option { background:var(--bg-card2); color:var(--text); }
+    button { margin-top:22px; width:100%; padding:13px;
+      background:linear-gradient(135deg,var(--teal),#0f7a76); color:#fff; border:none;
+      border-radius:8px; font-size:15px; cursor:pointer; font-weight:700; }
+    button:disabled { opacity:0.5; cursor:not-allowed; }
+    .success { color:var(--green); font-size:12px; margin-top:8px; }
+    .err     { color:var(--red); font-size:12px; margin-top:8px; }
   `]
 })
 export class AssignOfficerComponent implements OnInit {
   grievance: any;
   officers: any[] = [];
-  departments: any[] = [];
   selectedOfficer = '';
-  selectedDepartment = '';
   priority = '2';
   deadlineDays = '3';
-  recommendedDepartment = '';
   success = '';
   error = '';
-  isSubmitting = false;
-  today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  navSections: { label: string; items: NavItem[] }[] = [
-    {
-      label: 'MANAGEMENT', items: [
-        { icon: '🏠', label: 'Dashboard', route: '/admin/dashboard' },
-        { icon: '☰', label: 'All Grievances', route: '/admin/grievances' },
-        { icon: '👤', label: 'Assign Officers', route: '/admin/grievances', active: true },
-        { icon: '👥', label: 'Manage Users', route: '/admin/users' }
-      ]
-    },
-    {
-      label: 'ANALYTICS', items: [
-        { icon: '📊', label: 'Analytics & Reports', route: '/admin/analytics' }
-      ]
-    }
-  ];
 
   constructor(private route: ActivatedRoute,
-              private adminService: AdminService,
-              private gs: GrievanceService,
-              public auth: AuthService,
-              public router: Router) {}
+    private adminService: AdminService,
+    private gs: GrievanceService,
+    public router: Router) { }
 
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    if (!id || isNaN(id)) {
+      this.error = 'Invalid grievance ID';
+      return;
+    }
     this.gs.getById(id).subscribe({
-      next: g => {
-        this.grievance = g;
-        this.updateRecommendedDepartment();
-      },
-      error: () => this.error = 'Failed to load grievance details.'
+      next: g => this.grievance = g,
+      error: err => {
+        console.error('Failed to load grievance:', err);
+        this.error = 'Failed to load grievance details. Please go back and try again.';
+      }
     });
     this.adminService.getOfficers().subscribe({
-      next: o => this.officers = o,
-      error: () => this.error = 'Failed to load officers list.'
-    });
-    this.adminService.getDepartments().subscribe({
-      next: d => {
-        this.departments = d;
-        this.updateRecommendedDepartment();
+      next: o => {
+        this.officers = o;
+        if (o.length === 0) {
+          this.error = 'No officers registered yet. Please register an officer account first.';
+        }
       },
-      error: () => this.error = 'Failed to load departments list.'
+      error: err => console.error('Failed to load officers:', err)
     });
   }
 
   onAssign() {
-    this.error = '';
-    this.success = '';
-    this.isSubmitting = true;
     this.adminService.assignOfficer(
       this.grievance.id,
       Number(this.selectedOfficer),
       Number(this.priority),
-      Number(this.deadlineDays),
-      this.selectedDepartment ? Number(this.selectedDepartment) : undefined
+      Number(this.deadlineDays)
     ).subscribe({
       next: () => {
-        this.isSubmitting = false;
         this.success = 'Officer assigned with deadline set!';
         setTimeout(() =>
           this.router.navigate(['/admin/grievances']), 1500);
       },
-      error: (err) => {
-        this.isSubmitting = false;
-        this.error = err?.error?.message || 'Assignment failed. Try again.';
-      }
+      error: () => this.error = 'Assignment failed. Try again.'
     });
   }
-
-  private updateRecommendedDepartment() {
-    if (!this.grievance?.category || this.departments.length === 0) {
-      return;
-    }
-    const match = this.departments.find((d: any) => d.category === this.grievance.category);
-    if (match) {
-      this.recommendedDepartment = match.name;
-      if (!this.selectedDepartment) {
-        this.selectedDepartment = String(match.id);
-      }
-    }
-  }
-
 }

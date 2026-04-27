@@ -6,6 +6,46 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Theme applied before Angular loads — prevents flash and hydration mismatch -->
+    <script>
+      (function() {
+        var theme = localStorage.getItem('cptheme') || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        document.body && document.body.setAttribute('data-theme', theme);
+        document.addEventListener('DOMContentLoaded', function() {
+          document.body.setAttribute('data-theme', theme);
+          document.body.style.background = theme === 'dark' ? '#0f1923' : '#f0f4f8';
+          document.body.style.color = theme === 'dark' ? '#e2e8f0' : '#1e293b';
+        });
+      })();
+    </script>
+    <script>
+      if (typeof Node === 'function' && Node.prototype) {
+        const originalRemoveChild = Node.prototype.removeChild;
+        Node.prototype.removeChild = function(child) {
+          if (child.parentNode !== this) {
+            return child;
+          }
+          return originalRemoveChild.apply(this, arguments);
+        };
+        const originalInsertBefore = Node.prototype.insertBefore;
+        Node.prototype.insertBefore = function(newNode, referenceNode) {
+          if (referenceNode && referenceNode.parentNode !== this) {
+            return newNode;
+          }
+          return originalInsertBefore.apply(this, arguments);
+        };
+      }
+    </script>
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'en',
+          includedLanguages: 'en,hi,ta,te,bn,mr,gu,ur,kn,ml,pa,es,fr,de,zh-CN,ar'
+        }, 'google_translate_element');
+      }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -13,6 +53,78 @@
       rel="stylesheet"
     />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+      /* --- KILL GOOGLE TRANSLATE BANNER --- */
+      body {
+        top: 0 !important;
+        position: static !important;
+      }
+      .goog-te-banner-frame {
+        display: none !important;
+      }
+      iframe.goog-te-banner-frame {
+        display: none !important;
+      }
+
+      /* --- HIDE GOOGLE BRANDING --- */
+      .goog-logo-link, .goog-logo-link img {
+        display: none !important;
+      }
+      .goog-te-gadget {
+        color: transparent !important;
+        font-size: 0 !important;
+      }
+      .goog-te-gadget > span {
+        display: none !important;
+      }
+      .goog-te-gadget .goog-te-combo {
+        display: inline-block !important;
+        margin: 0 !important;
+      }
+
+      /* --- HIDE TOOLTIPS --- */
+      #goog-gt-tt, .goog-tooltip {
+        display: none !important;
+      }
+      .goog-text-highlight {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+
+      /* --- STYLE DROPDOWN PROPERLY --- */
+      .goog-te-combo {
+        background: #162032 !important;
+        color: #e2e8f0 !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 8px !important;
+        padding: 6px 30px 6px 12px !important;
+        font-size: 13px !important;
+        font-family: inherit !important;
+        font-weight: 500 !important;
+        outline: none !important;
+        cursor: pointer !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e2e8f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 8px center !important;
+        background-size: 14px !important;
+        transition: all 0.2s ease !important;
+      }
+      
+      .goog-te-combo:hover, .goog-te-combo:focus {
+        border-color: #0EA5A0 !important;
+      }
+
+      [data-theme="light"] .goog-te-combo {
+        background: #ffffff !important;
+        color: #1e293b !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e293b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+      }
+    </style>
   </head>
   <body>
     <app-root></app-root>

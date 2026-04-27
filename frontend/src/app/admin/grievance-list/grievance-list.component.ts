@@ -4,19 +4,49 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GrievanceService } from '../../services/grievance.service';
 import { AuthService } from '../../services/auth.service';
-import { SidebarComponent, NavItem } from '../../shared/sidebar.component';
-import { TopbarComponent } from '../../shared/topbar.component';
 
 @Component({
   selector: 'app-grievance-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
+  imports: [CommonModule, FormsModule],
   template: `
-    <div class="page-layout">
-      <app-sidebar role="ADMIN" homeRoute="/admin/dashboard" [sections]="navSections"></app-sidebar>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-dot">🏙️</div>
+          <div class="brand-text">Civic<span>Pulse</span></div>
+        </div>
+        <div class="user-pill">
+          <div class="user-dot" style="background:#60a5fa"></div>
+          <div>
+            <div class="user-role" style="color:#60a5fa">ADMIN</div>
+            <div class="user-name">&#64;{{ auth.getUsername() }}</div>
+          </div>
+        </div>
+        <div class="nav-section-label">MANAGEMENT</div>
+        <div class="nav-item" (click)="router.navigate(['/admin/dashboard'])"><span class="nav-icon">🏠</span> Dashboard</div>
+        <div class="nav-item active"><span class="nav-icon">☰</span> All Grievances <span class="nav-badge">{{ all.length }}</span></div>
+        <div class="nav-item" (click)="router.navigate(['/admin/grievances'])"><span class="nav-icon">👤</span> Assign Officers <span class="nav-badge" style="background:#f59e0b">{{ pendingCount }}</span></div>
+        <div class="nav-item"><span class="nav-icon">👥</span> Manage Users</div>
+        <div class="nav-section-label">ANALYTICS</div>
+        <div class="nav-item" (click)="router.navigate(['/admin/analytics'])"><span class="nav-icon">📊</span> Analytics & Reports</div>
+        <div class="nav-item"><span class="nav-icon">⚙️</span> System Settings</div>
+        <div class="sidebar-footer">
+          <button class="signout-btn" (click)="auth.logout()"><span>↪</span> Sign Out</button>
+        </div>
+      </aside>
 
-      <div class="main-content">
-        <app-topbar title="All Grievances" [subtitle]="today" role="ADMIN"></app-topbar>
+      <main class="main-content">
+        <div class="topnav">
+          <div>
+            <div class="page-title">All Grievances</div>
+            <div class="page-date">{{ today }}</div>
+          </div>
+          <div class="topnav-right">
+            <div class="role-badge" style="border-color:#60a5fa; color:#60a5fa">ADMIN</div>
+            <div class="avatar" style="background:#2563eb">A</div>
+          </div>
+        </div>
 
         <div class="page-content">
           <div class="page-header">
@@ -56,10 +86,6 @@ import { TopbarComponent } from '../../shared/topbar.component';
               <option value="IN_PROGRESS">In Progress</option>
               <option value="RESOLVED">Resolved</option>
             </select>
-            <select class="filter-select" [(ngModel)]="categoryFilter" (change)="applyFilter()">
-              <option value="">All Categories</option>
-              <option *ngFor="let cat of categoryOptions" [value]="cat">{{ cat }}</option>
-            </select>
           </div>
 
           <!-- Table -->
@@ -68,98 +94,80 @@ import { TopbarComponent } from '../../shared/topbar.component';
               <div class="empty-icon">📭</div>
               <h3>No grievances found</h3>
             </div>
-            <div class="table-wrap" *ngIf="filtered.length > 0">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>Location</th>
-                    <th>Status</th>
-                    <th>Priority</th>
-                    <th>Date</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let g of filtered">
-                    <td style="color:#60a5fa; font-weight:700; font-size:12px;">GRV-{{ String(g.id).padStart(3,'0') }}</td>
-                    <td>
-                      <div style="font-weight:600; color:#e2e8f0;">{{ g.title }}</div>
-                    </td>
-                    <td>
-                      <span style="font-size:14px;">{{ getCatIcon(g.category) }}</span>
-                      {{ g.category }}
-                    </td>
-                    <td>{{ g.location }}</td>
-                    <td><span class="badge" [ngClass]="getStatusClass(g.status)">{{ formatStatus(g.status) }}</span></td>
-                    <td>
-                      <span class="badge" [ngClass]="getPriorityClass(g.priority)">{{ getPriorityLabel(g.priority) }}</span>
-                    </td>
-                    <td>{{ g.submissionDate | date:'dd MMM' }}</td>
-                    <td>
-                      <button (click)="router.navigate(['/admin/assign', g.id])"
-                        style="padding:6px 14px; background:#0d9488; border:none; border-radius:6px; color:#fff; font-size:12px; font-weight:600; cursor:pointer;">
-                        Assign
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <table class="data-table" *ngIf="filtered.length > 0">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Location</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let g of filtered">
+                  <td style="color:#60a5fa; font-weight:700; font-size:12px;">GRV-{{ formatId(g.id) }}</td>
+                  <td>
+                    <div style="font-weight:600; color:#e2e8f0;">{{ g.title }}</div>
+                  </td>
+                  <td>
+                    <span style="font-size:14px;">{{ getCatIcon(g.category) }}</span>
+                    {{ g.category }}
+                  </td>
+                  <td>{{ g.location }}</td>
+                  <td><span class="badge" [ngClass]="getStatusClass(g.status)">{{ formatStatus(g.status) }}</span></td>
+                  <td>
+                    <span class="badge" [ngClass]="getPriorityClass(g.priority)">{{ getPriorityLabel(g.priority) }}</span>
+                  </td>
+                  <td>{{ g.submissionDate | date:'dd MMM' }}</td>
+                  <td>
+                    <button (click)="router.navigate(['/admin/assign', g.id])"
+                      style="padding:6px 14px; background:#0d9488; border:none; border-radius:6px; color:#fff; font-size:12px; font-weight:600; cursor:pointer;">
+                      Assign
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   `,
   styleUrls: ['../../../styles/shared-layout.scss'],
   styles: [`
     :host { display: block; }
     .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap:16px; }
-    .table-wrap { overflow-x: auto; }
   `]
 })
 export class GrievanceListComponent implements OnInit {
   all: any[] = [];
   filtered: any[] = [];
-  searchTerm = '';
-  statusFilter = '';
-  categoryFilter = '';
-  categoryOptions: string[] = [];
+  searchTerm = ''; statusFilter = '';
   pendingCount = 0; progressCount = 0; resolvedCount = 0;
+  loading = true;
+  loadError = '';
   today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  String = String;
-  navSections: { label: string; items: NavItem[] }[] = [
-    {
-      label: 'MANAGEMENT', items: [
-        { icon: '🏠', label: 'Dashboard', route: '/admin/dashboard' },
-        { icon: '☰', label: 'All Grievances', route: '/admin/grievances', active: true },
-        { icon: '👤', label: 'Assign Officers', route: '/admin/grievances' },
-        { icon: '👥', label: 'Manage Users', route: '/admin/users' }
-      ]
-    },
-    {
-      label: 'ANALYTICS', items: [
-        { icon: '📊', label: 'Analytics & Reports', route: '/admin/analytics' }
-      ]
-    }
-  ];
 
-  constructor(private gs: GrievanceService, public auth: AuthService, public router: Router) {}
+
+  constructor(private gs: GrievanceService, public auth: AuthService, public router: Router) { }
 
   ngOnInit() {
     this.gs.getAllGrievances().subscribe({
       next: d => {
+        this.loading = false;
         this.all = d; this.filtered = d;
-        this.categoryOptions = [...new Set(d.map((g: any) => g.category).filter(Boolean))].sort();
-        this.pendingCount  = d.filter((g: any) => g.status === 'PENDING').length;
+        this.pendingCount = d.filter((g: any) => g.status === 'PENDING').length;
         this.progressCount = d.filter((g: any) => g.status === 'IN_PROGRESS').length;
         this.resolvedCount = d.filter((g: any) => g.status === 'RESOLVED').length;
-        this.navSections[0].items[1].badge = this.all.length;
-        this.navSections[0].items[2].badge = this.pendingCount;
       },
-      error: () => {}
+      error: () => {
+        this.loading = false;
+        this.loadError = 'Failed to load grievances. Please refresh the page.';
+      }
     });
   }
 
@@ -167,8 +175,7 @@ export class GrievanceListComponent implements OnInit {
     this.filtered = this.all.filter(g => {
       const matchSearch = !this.searchTerm || g.title?.toLowerCase().includes(this.searchTerm.toLowerCase());
       const matchStatus = !this.statusFilter || g.status === this.statusFilter;
-      const matchCategory = !this.categoryFilter || g.category === this.categoryFilter;
-      return matchSearch && matchStatus && matchCategory;
+      return matchSearch && matchStatus;
     });
   }
 
@@ -192,4 +199,7 @@ export class GrievanceListComponent implements OnInit {
   }
   formatStatus(s: string): string { return s?.replace('_', ' ') || ''; }
 
+  formatId(id: number): string {
+    return String(id).padStart(3, '0');
+  }
 }

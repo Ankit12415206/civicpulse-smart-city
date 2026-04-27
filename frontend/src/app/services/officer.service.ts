@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class OfficerService {
-  private API = 'http://localhost:8080/api/officer';
+  private API = `${environment.apiUrl}/officer`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAssigned() {
     return this.http.get<any[]>(`${this.API}/assigned`);

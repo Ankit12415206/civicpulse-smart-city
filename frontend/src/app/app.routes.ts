@@ -5,71 +5,107 @@ import { roleGuard } from './guards/role.guard';
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  { path: 'login',
+  {
+    path: 'login',
     loadComponent: () => import('./auth/login/login.component')
-      .then(m => m.LoginComponent) },
+      .then(m => m.LoginComponent)
+  },
 
-  { path: 'register',
+  {
+    path: 'register',
     loadComponent: () => import('./auth/register/register.component')
-      .then(m => m.RegisterComponent) },
+      .then(m => m.RegisterComponent)
+  },
 
-  { path: 'citizen/dashboard',
+  {
+    path: 'citizen/dashboard',
     canActivate: [authGuard, roleGuard], data: { roles: ['CITIZEN'] },
     loadComponent: () => import('./dashboards/citizen-dashboard.component')
-      .then(m => m.CitizenDashboardComponent) },
+      .then(m => m.CitizenDashboardComponent)
+  },
 
-  { path: 'citizen/submit',
+  {
+    path: 'citizen/submit',
     canActivate: [authGuard, roleGuard], data: { roles: ['CITIZEN'] },
     loadComponent: () => import('./grievance/submit/grievance-submit.component')
-      .then(m => m.GrievanceSubmitComponent) },
+      .then(m => m.GrievanceSubmitComponent)
+  },
 
-  { path: 'citizen/my-complaints',
+  {
+    path: 'citizen/my-complaints',
     canActivate: [authGuard, roleGuard], data: { roles: ['CITIZEN'] },
     loadComponent: () => import('./grievance/my-complaints/my-complaints.component')
-      .then(m => m.MyComplaintsComponent) },
+      .then(m => m.MyComplaintsComponent)
+  },
 
-  { path: 'citizen/feedback/:id',
+  {
+    path: 'citizen/feedback/:id',
     canActivate: [authGuard, roleGuard], data: { roles: ['CITIZEN'] },
     loadComponent: () => import('./feedback/feedback.component')
-      .then(m => m.FeedbackComponent) },
-
-  { path: 'admin/dashboard',
+      .then(m => m.FeedbackComponent)
+  },
+  // Also add a route for feedback without an ID (the list view)
+  {
+    path: 'citizen/feedback',
+    canActivate: [authGuard, roleGuard], data: { roles: ['CITIZEN'] },
+    loadComponent: () => import('./feedback/feedback.component')
+      .then(m => m.FeedbackComponent)
+  },
+  {
+    path: 'admin/dashboard',
     canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN'] },
     loadComponent: () => import('./dashboards/admin-dashboard.component')
-      .then(m => m.AdminDashboardComponent) },
+      .then(m => m.AdminDashboardComponent)
+  },
 
-  { path: 'admin/grievances',
+  {
+    path: 'admin/grievances',
     canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN'] },
     loadComponent: () => import('./admin/grievance-list/grievance-list.component')
-      .then(m => m.GrievanceListComponent) },
+      .then(m => m.GrievanceListComponent)
+  },
 
-  { path: 'admin/assign/:id',
+  {
+    path: 'admin/assign/:id',
     canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN'] },
     loadComponent: () => import('./admin/assign-officer/assign-officer.component')
-      .then(m => m.AssignOfficerComponent) },
+      .then(m => m.AssignOfficerComponent)
+  },
 
-  { path: 'admin/analytics',
+  {
+    path: 'admin/analytics',
     canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN'] },
     loadComponent: () => import('./analytics/analytics.component')
-      .then(m => m.AnalyticsComponent) },
+      .then(m => m.AnalyticsComponent)
+  },
 
-  { path: 'admin/users',
+  {
+    path: 'admin/heatmap',
     canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN'] },
-    loadComponent: () => import('./admin/manage-users/manage-users.component')
-      .then(m => m.ManageUsersComponent) },
+    loadComponent: () => import('./admin/heatmap/heatmap.component')
+      .then(m => m.HeatmapComponent)
+  },
 
-  { path: 'officer/dashboard',
+  {
+    path: 'officer/dashboard',
     canActivate: [authGuard, roleGuard], data: { roles: ['OFFICER'] },
     loadComponent: () => import('./dashboards/officer-dashboard.component')
-      .then(m => m.OfficerDashboardComponent) },
+      .then(m => m.OfficerDashboardComponent)
+  },
 
-  { path: 'officer/assigned',
+  {
+    path: 'officer/assigned',
     canActivate: [authGuard, roleGuard], data: { roles: ['OFFICER'] },
     loadComponent: () => import('./officer/assigned/assigned.component')
-      .then(m => m.AssignedComponent) },
+      .then(m => m.AssignedComponent)
+  },
 
-  { path: 'officer/resolve/:id',
+  {
+    path: 'officer/resolve/:id',
     canActivate: [authGuard, roleGuard], data: { roles: ['OFFICER'] },
     loadComponent: () => import('./officer/resolve/resolve.component')
-      .then(m => m.ResolveComponent) }
+      .then(m => m.ResolveComponent)
+  },
+
+  { path: '**', redirectTo: 'login' }
 ];

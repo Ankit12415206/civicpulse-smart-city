@@ -9,12 +9,11 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
+    <div class="app-layout">
       <aside class="sidebar">
         <div class="sidebar-brand">
           <div class="brand-dot">🏙️</div>
           <div class="brand-text">Civic<span>Pulse</span></div>
-          <button class="sidebar-toggle" type="button" (click)="toggleSidebar()">{{ sidebarCollapsed ? '»' : '«' }}</button>
         </div>
         <div class="user-pill">
           <div class="user-dot" style="background:#a78bfa"></div>
@@ -27,7 +26,7 @@ import { AuthService } from '../../services/auth.service';
         <div class="nav-item" (click)="router.navigate(['/officer/dashboard'])"><span class="nav-icon">🏠</span> Overview</div>
         <div class="nav-item active"><span class="nav-icon">📋</span> Assigned to Me <span class="nav-badge" style="background:#a78bfa">{{ grievances.length }}</span></div>
         <div class="nav-item"><span class="nav-icon">🔧</span> In Progress <span class="nav-badge">{{ inProgress }}</span></div>
-        <div class="nav-item"><span class="nav-icon">✅</span> Completed <span class="nav-badge" style="background:#22c55e">{{ resolvedCount }}</span></div>
+        <div class="nav-item"><span class="nav-icon">✅</span> Completed</div>
         <div class="nav-section-label">ANALYTICS</div>
         <div class="nav-item"><span class="nav-icon">📊</span> Analytics</div>
         <div class="nav-section-label">INFO</div>
@@ -62,7 +61,17 @@ import { AuthService } from '../../services/auth.service';
             </div>
           </div>
 
-          <div *ngIf="grievances.length === 0" class="card">
+          <div *ngIf="loading" class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <h3>Loading assigned grievances...</h3>
+          </div>
+
+          <div *ngIf="loadError" class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <h3 style="color:#f87171">{{ loadError }}</h3>
+          </div>
+
+          <div *ngIf="!loading && !loadError && grievances.length === 0" class="card">
             <div class="empty-state">
               <div class="empty-icon">✅</div>
               <h3>No grievances assigned yet</h3>
@@ -80,12 +89,9 @@ import { AuthService } from '../../services/auth.service';
               </div>
               <div class="g-badges" style="gap:8px; flex-shrink:0;">
                 <span class="badge badge-red" *ngIf="isOverdue(g)">OVERDUE</span>
-                <span class="badge" [ngClass]="getPriorityClass(g.priority)">{{ priorityLabel(g.priority) }}</span>
-                <span class="badge" *ngIf="g.deadline && !isOverdue(g)" [ngClass]="daysLeft(g) <= 1 ? 'badge-medium' : 'badge-progress'">
-                  {{ countdownLabel(g) }}
-                </span>
-                <span class="badge" [ngClass]="getStatusClass(g.status)">
-                  {{ formatStatus(g.status) }}
+                <span class="badge" [ngClass]="getPriorityClass(g.priority)">P{{ g.priority }}</span>
+                <span class="badge" [ngClass]="g.status === 'PENDING' ? 'badge-new' : 'badge-progress'">
+                  {{ g.status === 'PENDING' ? 'NEW' : 'IN PROGRESS' }}
                 </span>
               </div>
             </div>
@@ -103,11 +109,9 @@ import { AuthService } from '../../services/auth.service';
                 </span>
               </div>
               <button (click)="router.navigate(['/officer/resolve', g.id])"
-                *ngIf="g.status !== 'RESOLVED'"
                 style="padding:8px 20px; background:#7c3aed; border:none; border-radius:8px; color:#fff; font-size:13px; font-weight:600; cursor:pointer;">
                 Update Status →
               </button>
-              <span *ngIf="g.status === 'RESOLVED'" class="badge badge-resolved">Closed</span>
             </div>
           </div>
         </div>
@@ -134,24 +138,23 @@ import { AuthService } from '../../services/auth.service';
 export class AssignedComponent implements OnInit {
   grievances: any[] = [];
   inProgress = 0;
-  resolvedCount = 0;
-  sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === '1';
+  loading = true;
+  loadError = '';
   today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-  constructor(private os: OfficerService, public auth: AuthService, public router: Router) {}
+  constructor(private os: OfficerService, public auth: AuthService, public router: Router) { }
 
   ngOnInit() {
     this.os.getAssigned().subscribe({
       next: d => {
-        this.grievances = d.sort((a: any, b: any) => {
-          const prioritySort = (b.priority || 1) - (a.priority || 1);
-          if (prioritySort !== 0) return prioritySort;
-          return new Date(a.deadline || a.submissionDate).getTime() - new Date(b.deadline || b.submissionDate).getTime();
-        });
+        this.loading = false;
+        this.grievances = d;
         this.inProgress = d.filter((g: any) => g.status === 'IN_PROGRESS').length;
-        this.resolvedCount = d.filter((g: any) => g.status === 'RESOLVED').length;
       },
-      error: () => {}
+      error: () => {
+        this.loading = false;
+        this.loadError = 'Failed to load assigned grievances. Please refresh.';
+      }
     });
   }
 
@@ -163,13 +166,6 @@ export class AssignedComponent implements OnInit {
     return Math.ceil((new Date(g.deadline).getTime() - Date.now()) / 86400000);
   }
 
-  countdownLabel(g: any): string {
-    const days = this.daysLeft(g);
-    if (days <= 0) return 'Due today';
-    if (days === 1) return '1 day left';
-    return `${days} days left`;
-  }
-
   getCatIcon(cat: string): string {
     const m: any = { WATER: '💧', ROAD: '🛣️', SANITATION: '🗑️', ELECTRICITY: '⚡', STREET_LIGHT: '💡', OTHER: '📋' };
     return m[cat] || '📋';
@@ -179,26 +175,5 @@ export class AssignedComponent implements OnInit {
     if (p >= 3) return 'badge-high';
     if (p === 2) return 'badge-medium';
     return 'badge-low';
-  }
-
-  priorityLabel(p: number): string {
-    if (p >= 3) return 'P3';
-    if (p === 2) return 'P2';
-    return 'P1';
-  }
-
-  getStatusClass(status: string): string {
-    if (status === 'RESOLVED') return 'badge-resolved';
-    if (status === 'IN_PROGRESS') return 'badge-progress';
-    return 'badge-new';
-  }
-
-  formatStatus(status: string): string {
-    return status?.replace('_', ' ') || 'PENDING';
-  }
-
-  toggleSidebar() {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
-    localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed ? '1' : '0');
   }
 }
