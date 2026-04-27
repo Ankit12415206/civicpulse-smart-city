@@ -34,6 +34,14 @@ public class Grievance {
     private String resolutionNote;
     private Integer priority = 1;
 
+    // Sentiment AI fields
+    private Double sentimentScore;
+    private String sentimentLabel;
+
+    // GPS fields for Heatmap
+    private Double latitude;
+    private Double longitude;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -78,4 +86,16 @@ public class Grievance {
 
     public Integer getPriority() { return priority; }
     public void setPriority(Integer priority) { this.priority = priority; }
+
+    public Double getSentimentScore() { return sentimentScore; }
+    public void setSentimentScore(Double sentimentScore) { this.sentimentScore = sentimentScore; }
+
+    public String getSentimentLabel() { return sentimentLabel; }
+    public void setSentimentLabel(String sentimentLabel) { this.sentimentLabel = sentimentLabel; }
+
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
 }
