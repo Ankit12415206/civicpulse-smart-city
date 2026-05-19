@@ -3,7 +3,6 @@
 A full-stack, AI-powered Smart City web portal designed to revolutionize how municipal authorities and citizens interact. Built with **Spring Boot** and **Angular**, this platform facilitates real-time grievance reporting, transparent issue tracking, civic feedback collection, and AI-driven insights to ensure rapid and effective urban management.
 
 ---
-
 ## 🌟 Introduction & Vision
 
 In rapidly growing smart cities, managing urban infrastructure and addressing citizen complaints efficiently is a monumental challenge. CivicPulse bridges the gap between citizens and municipal authorities by providing a centralized, transparent, and intelligent platform. 
@@ -11,6 +10,17 @@ In rapidly growing smart cities, managing urban infrastructure and addressing ci
 Whether it's a broken street light, a water leak, or poor sanitation, CivicPulse allows citizens to report issues seamlessly, tracks the resolution via strict Service Level Agreements (SLAs), and leverages Artificial Intelligence to automatically route complaints to the appropriate department officers.
 
 ---
+
+## Quick Links
+
+- [Features](#-core-features--modules-explained)
+- [Technology Stack](#-architecture--technology-stack)
+- [Setup & Installation](#-setup--installation-instructions)
+- [Repository Structure](#-repository-structure-overview)
+- [Contributing](CONTRIBUTING.md)
+- [License](LICENSE)
+---
+
 
 ## 🏗️ Architecture & Technology Stack
 
@@ -37,6 +47,7 @@ CivicPulse is built on a robust, scalable microservices-inspired architecture, d
 - **Data Visualization:** Chart.js for rendering Admin analytics and Geospatial Heatmaps.
 
 ---
+
 
 ## 🚀 Core Features & Modules Explained
 
@@ -85,6 +96,11 @@ A 24/7 digital concierge for citizens.
 - **Cross-Lingual Intent Parsing:** If a citizen asks a question in Spanish or Hindi, the Python microservice translates it, determines the intent, queries the database, and returns the answer in the citizen's chosen language.
 
 ---
+## Quick Start
+```
+git clone https://github.com/<your-username>/civicpulse-smart-city.git
+cd civicpulse-smart-city
+```
 
 ## 🛠️ Setup & Installation Instructions
 
@@ -162,36 +178,66 @@ npm start
 
 ## 📁 Repository Structure Overview
 
+## 📁 Repository Structure Overview
+
 ```text
 civicpulse-smart-city/
-├── pom.xml                               # Backend Maven Configuration
-├── src/main/java/com/civicpulse/civicpulse_backend/
-│   ├── controller/                       # REST API Endpoints mapping
-│   ├── dto/                              # Data Transfer Objects
-│   ├── model/                            # JPA Entities (Database Tables)
-│   ├── repository/                       # Spring Data JPA Interfaces
-│   ├── security/                         # JWT Filters, Utils, and WebSecurityConfig
-│   └── service/                          # Core Business Logic (SLA, Auto-Assign, Emails)
-├── src/main/resources/
-│   └── application.properties            # Environment Configurations
-└── frontend/
-    ├── sentiment-service/                # Python AI Microservice Folder
-    │   ├── app.py
-    │   └── requirements.txt
-    ├── angular.json                      # Angular Workspace Configuration
-    ├── package.json                      # Node Dependencies
-    └── src/app/
-        ├── auth/                         # Login & Registration Components
-        ├── dashboards/                   # Role-specific UI Views
-        ├── grievance/                    # Submission Forms & Tracking UI
-        ├── admin/                        # Admin Management & Heatmaps
-        ├── officer/                      # Resolution Task Queues
-        ├── shared/                       # Global UI (Chatbot, Sidebar, Topbar)
-        ├── services/                     # Angular HTTP & State Services
-        ├── guards/                       # Route Protection
-        └── interceptors/                 # HTTP Token Injection
+├── .vscode/
+│   └── settings.json                     # Workspace-specific VS Code settings
+├── backend/
+│   ├── pom.xml                           # Backend Maven configuration
+│   └── src/
+│       └── main/
+│           ├── java/
+│           │   └── com/civicpulse/civicpulse_backend/
+│           │       ├── controller/       # REST API endpoint mappings
+│           │       ├── dto/              # Data Transfer Objects
+│           │       ├── model/            # JPA entities (database tables)
+│           │       ├── repository/       # Spring Data JPA interfaces
+│           │       ├── security/         # JWT filters, utilities, and security config
+│           │       └── service/          # Core business logic (SLA, auto-assign, emails)
+│           └── resources/
+│               └── application.properties # Backend environment configuration
+├── frontend/
+│   ├── .vscode/                          # Frontend editor settings
+│   ├── public/                           # Static assets served directly
+│   ├── sentiment-service/                # Python AI microservice
+│   │   ├── app.py                        # Sentiment analysis API entry point
+│   │   └── requirements.txt              # Python dependencies
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── auth/                     # Login and registration components
+│   │   │   ├── dashboards/               # Role-specific dashboard views
+│   │   │   ├── grievance/                # Complaint submission and tracking UI
+│   │   │   ├── admin/                    # Admin tools and heatmaps
+│   │   │   ├── officer/                  # Officer resolution task queues
+│   │   │   ├── shared/                   # Shared UI (chatbot, sidebar, topbar)
+│   │   │   ├── services/                 # Angular HTTP and state services
+│   │   │   ├── guards/                   # Route protection
+│   │   │   └── interceptors/             # HTTP token injection
+│   │   ├── environments/                 # Angular environment configurations
+│   │   └── styles/                       # Global style assets
+│   ├── index.html                        # Frontend entry HTML
+│   ├── main.ts                           # Browser bootstrap
+│   ├── main.server.ts                    # Server-side rendering bootstrap
+│   ├── server.ts                         # SSR server entry point
+│   ├── styles.scss                       # Global SCSS styles
+│   ├── .editorconfig                     # Editor formatting rules
+│   ├── .gitignore                        # Frontend-specific ignore rules
+│   ├── .prettierrc                       # Prettier configuration
+│   ├── angular.json                      # Angular workspace configuration
+│   ├── package.json                      # Node dependencies and scripts
+│   ├── package-lock.json                 # Locked dependency versions
+│   ├── README.md                         # Frontend-specific documentation
+│   ├── tsconfig.app.json                 # TypeScript app configuration
+│   ├── tsconfig.json                     # Base TypeScript configuration
+│   └── tsconfig.spec.json                # TypeScript test configuration
+├── src/                                  # Additional shared or legacy source files
+├── .gitignore                            # Repository-wide ignore rules
+├── CONTRIBUTING.md                       # Contributor guidelines
+├── LICENSE                               # Project license
+└── README.md                             # Main project documentation
 ```
-
 ---
 
 ## 🔒 Security & Architecture Notes
@@ -210,3 +256,11 @@ This project was conceptualized, designed, and developed by:
 **Namit Pareek**  
 
 *Dedicated to building smarter, more responsive cities through technology.*
+
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contributor guidelines.
+
+## License
+
+This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
